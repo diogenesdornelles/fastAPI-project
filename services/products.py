@@ -66,6 +66,7 @@ class ProductsService:
             if projection:
                 response: Dict = self.database.find_one({"_id": _id},
                                                         {'created_at': 0,
+                                                         'photos': 0,
                                                          'last_modified': 0})
             else:
                 response: Dict = DB.products.find_one({"_id": _id})
@@ -80,6 +81,7 @@ class ProductsService:
     def create_one_product(self, product: Dict) -> None:
         product["created_at"]: datetime = datetime.now()
         product["last_modified"]: datetime = product["created_at"]
+        product["photos"]: List = []
         try:
             response: Any = self.database.insert_one(product).inserted_id
             if response:

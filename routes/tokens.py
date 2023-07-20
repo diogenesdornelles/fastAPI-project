@@ -1,5 +1,5 @@
 from typing import Dict
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, status
 from starlette.responses import JSONResponse
 from models import ClientAuth, UserAuth
 from controllers import TokensController
@@ -22,20 +22,26 @@ controller = TokensController()
 
 
 @router.post("/clients", response_model=None)
-async def create_token_client(client: ClientAuth, response: Response) -> JSONResponse:
+async def create_token_client(client: ClientAuth) -> JSONResponse:
     client: Dict = client.to_dict()
     result: Dict = controller.create_token_client(client)
-    if result:
-        response.status_code = status.HTTP_201_CREATED
-        return JSONResponse(content=result, media_type="application/json; charset=UTF-8")
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+    if 'failed' in result:
+        return JSONResponse(content=result,
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            media_type="application/json; charset=UTF-8")
+    return JSONResponse(content=result,
+                        status_code=status.HTTP_201_CREATED,
+                        media_type="application/json; charset=UTF-8")
 
 
 @router.post("/users", response_model=None)
-async def create_token_client(user: UserAuth, response: Response) -> JSONResponse:
+async def create_token_client(user: UserAuth) -> JSONResponse:
     user: Dict = user.to_dict()
     result: Dict = controller.create_token_user(user)
-    if result:
-        response.status_code = status.HTTP_201_CREATED
-        return JSONResponse(content=result, media_type="application/json; charset=UTF-8")
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+    if 'failed' in result:
+        return JSONResponse(content=result,
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            media_type="application/json; charset=UTF-8")
+    return JSONResponse(content=result,
+                        status_code=status.HTTP_201_CREATED,
+                        media_type="application/json; charset=UTF-8")

@@ -1,6 +1,7 @@
 from typing import Annotated, Optional
 import os
-from fastapi import APIRouter, Query, Response, status
+from fastapi import APIRouter, Query, status
+from fastapi.responses import JSONResponse
 from controllers import RemoveController
 from dotenv import load_dotenv, find_dotenv
 
@@ -35,13 +36,14 @@ async def remove_photo_client(url_file: Annotated[Optional[str], Query(regex=reg
                               client_id: Annotated[Optional[str], Query(regex=r'^[a-f0-9]{24}$',
                                                                         title='mongodb _id',
                                                                         description='mongodb _id must be valid'
-                                                                        )]
-                              , response: Response):
+                                                                        )]):
     result = controller.remove_photo_client(url_file, client_id)
     if 'failed' in result:
-        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        return result
-    return result
+        return JSONResponse(content=result,
+                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            media_type="application/json; charset=UTF-8")
+    JSONResponse(content=result,
+                 media_type="application/json; charset=UTF-8")
 
 
 @router.post("/products")
@@ -52,10 +54,11 @@ async def remove_photo_product(url_file: Annotated[Optional[str], Query(regex=re
                                product_id: Annotated[Optional[str], Query(regex=r'^[a-f0-9]{24}$',
                                                                           title='mongodb _id',
                                                                           description='mongodb _id must be valid'
-                                                                          )]
-                               , response: Response):
+                                                                          )]):
     result = controller.remove_photo_product(url_file, product_id)
     if 'failed' in result:
-        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        return result
-    return result
+        return JSONResponse(content=result,
+                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            media_type="application/json; charset=UTF-8")
+    JSONResponse(content=result,
+                 media_type="application/json; charset=UTF-8")

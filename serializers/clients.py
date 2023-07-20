@@ -8,10 +8,10 @@ class ClientSerializer:
 
     def serialize_all(self) -> List[Dict]:
         self.body: List[Dict] = list(self.body)
-        self.body: List[Dict] = [convert_objectid_to_str(result) for result in self.body]
+        self.body: List[Dict] = [convert_objectid_to_str(item) for item in self.body]
         for client in self.body:
             client['orders']: List[Dict] = [str(order) for order in client['orders']]
-        self.body: List[Dict] = [convert_datetime_to_str(result) for result in self.body]
+        self.body: List[Dict] = [convert_datetime_to_str(item) for item in self.body]
         return self.body
 
     def serialize_some(self):

@@ -1,1 +1,2 @@
-from .users import token_user_verify
+from .users import VerifyTokenUser
+from .clients import VerifyTokenClient

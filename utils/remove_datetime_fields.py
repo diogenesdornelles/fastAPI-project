@@ -1,10 +1,9 @@
-from datetime import datetime
 from typing import Dict
 
 
 def remove_datetime_fields(obj) -> Dict:
     """
-    Remove datetime fiels (created_at and last_modified)
+    Remove datetime fields (created_at and last_modified)
     :param obj - Dict
     :return Dict
     """

@@ -2,3 +2,5 @@
 examples.json
 notes
 tests.py
+.idea
+.env
