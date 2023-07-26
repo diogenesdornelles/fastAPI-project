@@ -12,11 +12,11 @@ class InterfaceEntitiesController(ABC):
         pass
 
     @abstractmethod
-    def create_one(self, user: Dict):
+    def create_one(self, user: Dict) -> Dict:
         pass
 
     @abstractmethod
-    def update_one_by_id(self, updates: Dict):
+    def update_one_by_id(self, updates: Dict) -> Dict:
         pass
 
     @abstractmethod

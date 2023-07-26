@@ -17,12 +17,12 @@ class UsersController(InterfaceEntitiesController):
         response: Dict = self.service.user
         return response
 
-    def create_one(self, user: Dict):
+    def create_one(self, user: Dict) -> Dict:
         self.service.create_one(user)
         response: Dict = self.service.create_result
         return response
 
-    def update_one_by_id(self, updates: Dict):
+    def update_one_by_id(self, updates: Dict) -> Dict:
         self.service.update_one_by_id(updates)
         response: Dict = self.service.update_result
         return response

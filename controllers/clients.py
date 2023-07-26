@@ -17,12 +17,12 @@ class ClientsController(InterfaceEntitiesController):
         response: Dict = self.service.client
         return response
 
-    def create_one(self, client: Dict):
+    def create_one(self, client: Dict) -> Dict:
         self.service.create_one(client)
         response: Dict = self.service.create_result
         return response
 
-    def update_one_by_id(self, updates: Dict):
+    def update_one_by_id(self, updates: Dict) -> Dict:
         self.service.update_one_by_id(updates)
         response: Dict = self.service.update_result
         return response

@@ -12,17 +12,17 @@ class OrdersController(InterfaceEntitiesController):
         response: List[Dict] = self.service.all_orders
         return response
 
-    def get_one_by_id(self, _id: str):
+    def get_one_by_id(self, _id: str) -> Dict:
         self.service.get_one_by_id(_id)
         response: Dict = self.service.order
         return response
 
-    def create_one(self, order: Dict):
+    def create_one(self, order: Dict) -> Dict:
         self.service.create_one(order)
         response: Dict = self.service.create_result
         return response
 
-    def update_one_by_id(self, updates: Dict):
+    def update_one_by_id(self, updates: Dict) -> Dict:
         self.service.update_one_by_id(updates)
         response: Dict = self.service.update_result
         return response
