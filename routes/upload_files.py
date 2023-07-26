@@ -10,7 +10,6 @@ from dependencies import VerifyTokenUser
 
 load_dotenv(find_dotenv())
 
-controller: UploadsController = UploadsController()
 
 router: APIRouter = APIRouter(
     prefix="/uploadfiles",
@@ -24,6 +23,7 @@ URL_STATIC_PHOTOS_CLIENTS = os.environ.get("URL_STATIC_PHOTOS_CLIENTS")
 
 FILENAME_LENGTH = os.environ.get("FILENAME_LENGTH")
 
+controller: UploadsController = UploadsController()
 
 @router.post("/clients")
 async def upload_photo_client(file: UploadFile,
@@ -31,7 +31,8 @@ async def upload_photo_client(file: UploadFile,
                                                                         title='mongodb _id',
                                                                         description='mongodb _id must be valid'
                                                                         )],
-                              verify_token: VerifyTokenUser):
+                              verify_token: VerifyTokenUser,
+                              ):
     if 'failed' in verify_token:
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],

@@ -201,6 +201,8 @@ class OrdersService:
                 self.__all_orders: List[Dict] = response
             else:
                 self.__all_orders: List = []
+        except errors.OperationFailure:
+            self.__all_orders: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__all_orders: Dict = {'failed': 'An error has occurred'}
 
@@ -213,6 +215,8 @@ class OrdersService:
             else:
                 self.__order: Dict = {'failed': 'Order not founded',
                                       '_id': str(_id)}
+        except errors.OperationFailure:
+            self.__order: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__order: Dict = {'failed': 'An error has occurred'}
 
@@ -266,6 +270,8 @@ class OrdersService:
             except errors.WriteError as error:
                 self.__create_result: Dict = {'failed': "Validate error",
                                               'message': error.details.get('keyValue')}
+            except errors.OperationFailure:
+                self.__create_result: Dict = {'failed': 'An error has occurred: database operation fails'}
                 # generic error
             except Exception:
                 self.__create_result: Dict = {'failed': 'An error has occurred'}
@@ -329,6 +335,8 @@ class OrdersService:
                 except errors.WriteError as error:
                     self.__update_result: Dict = {'failed': "Validate error",
                                                   'message': error.details.get('keyValue')}
+                except errors.OperationFailure:
+                    self.__update_result: Dict = {'failed': 'An error has occurred: database operation fails'}
                 # generic error
                 except Exception:
                     self.__update_result: Dict = {'failed': 'An error has occurred'}
@@ -355,5 +363,7 @@ class OrdersService:
                                           'quantity': result} if \
                 result > 0 else {'failed': 'Order not deleted',
                                  '_id': str(_id)}
+        except errors.OperationFailure:
+            self.__delete_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__delete_result: Dict = {'failed': 'An error has occurred'}

@@ -13,11 +13,13 @@ router: APIRouter = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-controller = ClientsController()
+controller: ClientsController = ClientsController()
+serializer: ClientSerializer = ClientSerializer()
 
 
 @router.get("/all", response_model=Union[list[ClientResponse], Failed])
-async def get_all_clients(verify_token: VerifyTokenUser) -> JSONResponse | Dict:
+async def get_all_clients(verify_token: VerifyTokenUser) \
+        -> JSONResponse | Dict:
     if 'failed' in verify_token:
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],
@@ -27,8 +29,8 @@ async def get_all_clients(verify_token: VerifyTokenUser) -> JSONResponse | Dict:
         return JSONResponse(content=result,
                             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             media_type="application/json; charset=UTF-8")
-    serializer: ClientSerializer = ClientSerializer(result)
-    result: List[Dict] = serializer.serialize_all()
+
+    result: List[Dict] = serializer.serialize_all(result)
     return JSONResponse(content=result,
                         media_type="application/json; charset=UTF-8")
 
@@ -39,8 +41,7 @@ async def get_one_client_by_id(
         client_id: Annotated[Optional[str], Query(regex=r'^[a-f0-9]{24}$',
                                                   title='mongodb _id',
                                                   description='mongodb _id must be valid'
-                                                  )]
-) -> JSONResponse | Dict:
+                                                  )]) -> JSONResponse | Dict:
     if 'failed' in verify_token:
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],
@@ -55,8 +56,7 @@ async def get_one_client_by_id(
             return JSONResponse(content=result,
                                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                 media_type="application/json; charset=UTF-8")
-        serializer: ClientSerializer = ClientSerializer(result)
-        result: Dict = serializer.serialize_one()
+        result: Dict = serializer.serialize_one(result)
         return JSONResponse(content=result,
                             media_type="application/json; charset=UTF-8")
     result: Dict = {'failed': 'parameter client_id must be given'}
@@ -67,7 +67,8 @@ async def get_one_client_by_id(
 
 @router.post("/", response_model=Union[Success, Failed])
 async def create_one_client(verify_token: VerifyTokenUser,
-                            client: Client) -> Union[JSONResponse, Dict]:
+                            client: Client) \
+        -> Union[JSONResponse, Dict]:
     if 'failed' in verify_token:
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],
@@ -89,7 +90,8 @@ async def create_one_client(verify_token: VerifyTokenUser,
 
 @router.put("/", response_model=Union[Success, Failed])
 async def update_one_client_by_id(verify_token: VerifyTokenUser,
-                                  updated: ClientUpdate) -> Union[JSONResponse, Dict]:
+                                  updated: ClientUpdate) \
+        -> Union[JSONResponse, Dict]:
     if 'failed' in verify_token:
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],
@@ -110,10 +112,11 @@ async def update_one_client_by_id(verify_token: VerifyTokenUser,
 
 @router.delete("/", response_model=Union[Success, Failed])
 async def delete_one_client_by_id(verify_token: VerifyTokenUser,
-                                  client_id: Annotated[Optional[str], Query(regex=r'^[a-f0-9]{24}$',
-                                                                            title='mongodb _id',
-                                                                            description='mongodb _id must be valid'
-                                                                            )]
+                                  client_id: Annotated[Optional[str],
+                                  Query(regex=r'^[a-f0-9]{24}$',
+                                        title='mongodb _id',
+                                        description='mongodb _id must be valid'
+                                        )]
                                   ) -> Union[JSONResponse, Dict]:
     if 'failed' in verify_token:
         return JSONResponse(content=verify_token,

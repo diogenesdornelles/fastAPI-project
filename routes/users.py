@@ -12,7 +12,8 @@ router: APIRouter = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-controller = UsersController()
+controller: UsersController = UsersController()
+serializer: UserSerializer = UserSerializer()
 
 
 @router.get("/", response_model=UserResponse | Failed)
@@ -20,7 +21,9 @@ async def get_one_user_by_id(user_id: Annotated[str | None, Query(regex=r'^[a-f0
                                                                   title='mongodb _id',
                                                                   description='mongodb _id must be valid'
                                                                   )],
-                             verify_token: VerifyTokenUser) \
+                             verify_token: VerifyTokenUser
+
+) \
         -> Union[JSONResponse, Dict]:
     if 'failed' in verify_token:
         return JSONResponse(content=verify_token,
@@ -36,8 +39,7 @@ async def get_one_user_by_id(user_id: Annotated[str | None, Query(regex=r'^[a-f0
             return JSONResponse(content=result,
                                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                 media_type="application/json; charset=UTF-8")
-        serializer: UserSerializer = UserSerializer(result)
-        result: Dict = serializer.serialize_one()
+        result: Dict = serializer.serialize_one(result)
         return JSONResponse(content=result,
                             media_type="application/json; charset=UTF-8")
     result: Dict = {'failed': 'parameter user_id must be given'}
@@ -57,8 +59,7 @@ async def get_all_users(verify_token: VerifyTokenUser) -> Union[JSONResponse, Di
         return JSONResponse(content=result,
                             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             media_type="application/json; charset=UTF-8")
-    serializer: UserSerializer = UserSerializer(result)
-    result: List[Dict] = serializer.serialize_all()
+    result: List[Dict] = serializer.serialize_all(result)
     return JSONResponse(content=result,
                         media_type="application/json; charset=UTF-8")
 

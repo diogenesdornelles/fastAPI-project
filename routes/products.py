@@ -13,6 +13,7 @@ router: APIRouter = APIRouter(
 )
 
 controller: ProductsController = ProductsController()
+serializer: ProductSerializer = ProductSerializer()
 
 
 @router.get("/all", response_model=list[ProductResponse] | Failed)
@@ -26,8 +27,7 @@ async def get_all_products(verify_token: VerifyTokenUser) -> Union[JSONResponse,
         return JSONResponse(content=result,
                             status_code=status.HTTP_404_NOT_FOUND,
                             media_type="application/json; charset=UTF-8")
-    serializer: ProductSerializer = ProductSerializer(result)
-    result: List[Dict] = serializer.serialize_all()
+    result: List[Dict] = serializer.serialize_all(result)
     return JSONResponse(content=result,
                         media_type="application/json; charset=UTF-8")
 
@@ -49,8 +49,7 @@ async def get_one_client_by_id(product_id: Annotated[str | None, Query(regex=r'^
             return JSONResponse(content=result,
                                 status_code=status.HTTP_404_NOT_FOUND,
                                 media_type="application/json; charset=UTF-8")
-        serializer: ProductSerializer = ProductSerializer(result)
-        result: Dict = serializer.serialize_one()
+        result: Dict = serializer.serialize_one(result)
         return JSONResponse(content=result,
                             media_type="application/json; charset=UTF-8")
     result: Dict = {'failed': 'parameter product_id must be given'}

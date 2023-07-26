@@ -64,6 +64,8 @@ class ClientsService:
                 self.__all_clients: List[Dict] = response
             else:
                 self.__all_clients: List = []
+        except errors.OperationFailure:
+            self.__all_clients: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__all_clients = {'failed': 'An error has occurred'}
 
@@ -84,6 +86,8 @@ class ClientsService:
             else:
                 self.__client: Dict = {'failed': 'Client not founded',
                                        '_id': _id}
+        except errors.OperationFailure:
+            self.__client: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__client: Dict = {'failed': 'An error has occurred'}
 
@@ -110,6 +114,8 @@ class ClientsService:
         except errors.WriteError as error:
             self.__create_result: Dict = {'failed': "Validate error",
                                           'message': error.details.get('keyValue')}
+        except errors.OperationFailure:
+            self.__create_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__create_result: Dict = {'failed': 'An error has occurred'}
 
@@ -136,6 +142,8 @@ class ClientsService:
         except errors.WriteError as error:
             self.__update_result: Dict = {'failed': "Validate error",
                                           'message': error.details.get('keyValue')}
+        except errors.OperationFailure:
+            self.__update_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__update_result: Dict = {'failed': 'An error has occurred'}
 
@@ -146,6 +154,8 @@ class ClientsService:
             self.__delete_result: Dict = {'success': f'{result} client(s) deleted'} if result > 0 \
                 else {'failed': 'Client not deleted',
                       '_id': str(_id)}
+        except errors.OperationFailure:
+            self.__delete_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__delete_result: Dict = {'failed': 'An error has occurred'}
 
@@ -164,6 +174,8 @@ class ClientsService:
             result: int = self.database.update_one(query, update).modified_count
             self.__insert_new_order_result: Dict = {'success': 'Order inserted',
                                                     'quantity': result}
+        except errors.OperationFailure:
+            self.__insert_new_order_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__insert_new_order_result: Dict = {'failed': 'An error has occurred'}
 
@@ -181,6 +193,8 @@ class ClientsService:
             result: int = self.database.update_one(query, update).modified_count
             self.__insert_new_photo_result: Dict = {'success': 'Photo inserted',
                                                     'quantity': result}
+        except errors.OperationFailure:
+            self.__insert_new_photo_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__insert_new_photo_result: Dict = {'failed': 'An error has occurred'}
 
@@ -196,7 +210,9 @@ class ClientsService:
         }
         try:
             result: int = self.database.update_one(query, pull).modified_count
-            self.__insert_new_photo_result: Dict = {'success': 'Photo removed',
-                                                    'quantity': result}
+            self.__delete_photo_result: Dict = {'success': 'Photo removed',
+                                                'quantity': result}
+        except errors.OperationFailure:
+            self.__delete_photo_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__delete_photo_result: Dict = {'failed': 'An error has occurred'}

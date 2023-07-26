@@ -57,6 +57,8 @@ class ProductsService:
                 self.__all_products: List[Dict] = response
             else:
                 self.__all_products: List = []
+        except errors.OperationFailure:
+            self.__all_products: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__all_products: Dict = {'failed': 'An error has occurred'}
 
@@ -75,6 +77,8 @@ class ProductsService:
             else:
                 self.__product: Dict = {'failed': 'Product not founded',
                                         '_id': str(_id)}
+        except errors.OperationFailure:
+            self.__product: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__product: Dict = {'failed': 'An error has occurred'}
 
@@ -95,6 +99,8 @@ class ProductsService:
         except errors.WriteError as error:
             self.__create_result: Dict = {'failed': "Validate error",
                                           'message': error.details.get('keyValue')}
+        except errors.OperationFailure:
+            self.__create_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__create_result: Dict = {'failed': 'An error has occurred'}
 
@@ -123,6 +129,8 @@ class ProductsService:
         except errors.WriteError as error:
             self.__update_result: Dict = {'failed': "Validate error",
                                           'message': error.details.get('keyValue')}
+        except errors.OperationFailure:
+            self.__update_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__update_result: Dict = {'failed': 'An error has occurred'}
 
@@ -133,6 +141,8 @@ class ProductsService:
             self.__delete_result: Dict = {'success': f'{result} product(s) deleted'} if result > 0 \
                 else {'failed': 'Product not deleted',
                       '_id': str(_id)}
+        except errors.OperationFailure:
+            self.__delete_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__delete_result: Dict = {'failed': 'An error has occurred'}
 
@@ -150,6 +160,8 @@ class ProductsService:
             result: int = self.database.update_one(query, update).modified_count
             self.__insert_new_photo_result: Dict = {'success': 'Photo inserted',
                                                     'quantity': result}
+        except errors.OperationFailure:
+            self.__insert_new_photo_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__insert_new_photo_result: Dict = {'failed': 'An error has occurred'}
 
@@ -165,7 +177,9 @@ class ProductsService:
         }
         try:
             result: int = self.database.update_one(query, pull).modified_count
-            self.__insert_new_photo_result: Dict = {'success': 'Photo removed',
+            self.__delete_photo_result: Dict = {'success': 'Photo removed',
                                                     'quantity': result}
+        except errors.OperationFailure:
+            self.__delete_photo_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__delete_photo_result: Dict = {'failed': 'An error has occurred'}

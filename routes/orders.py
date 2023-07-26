@@ -13,6 +13,7 @@ router: APIRouter = APIRouter(
 )
 
 controller: OrdersController = OrdersController()
+serializer: OrderSerializer = OrderSerializer()
 
 
 @router.get("/", response_model=None)
@@ -36,8 +37,7 @@ async def get_one_order_by_id(order_id: Annotated[str | None, Query(regex=r'^[a-
             return JSONResponse(content=result,
                                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                 media_type="application/json; charset=UTF-8")
-        serializer: OrderSerializer = OrderSerializer(result)
-        result: Dict = serializer.serialize_one()
+        result: Dict = serializer.serialize_one(result)
         return JSONResponse(content=result,
                             media_type="application/json; charset=UTF-8")
     result: Dict = {'failed': 'parameter order_id must be given'}
@@ -57,8 +57,7 @@ async def get_all_orders(verify_token: VerifyTokenUser) -> JSONResponse:
         return JSONResponse(content=result,
                             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             media_type="application/json; charset=UTF-8")
-    serializer: OrderSerializer = OrderSerializer(result)
-    result: List[Dict] = serializer.serialize_all()
+    result: List[Dict] = serializer.serialize_all(result)
     return JSONResponse(content=result,
                         media_type="application/json; charset=UTF-8")
 

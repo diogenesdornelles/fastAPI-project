@@ -62,6 +62,8 @@ class UsersService:
             else:
                 self.__user: Dict = {'failed': 'User not founded',
                                      '_id': str(_id)}
+        except errors.OperationFailure:
+            self.__user: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__user = {'failed': 'An error has occurred'}
 
@@ -86,6 +88,8 @@ class UsersService:
         except errors.WriteError as error:
             self.__create_result: Dict = {'failed': "Validate error",
                                           'message': error.details.get('keyValue')}
+        except errors.OperationFailure:
+            self.__create_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__create_result: Dict = {'failed': 'An error has occurred'}
 
@@ -109,6 +113,8 @@ class UsersService:
         except errors.WriteError as error:
             self.__update_result: Dict = {'failed': "Validate error",
                                           'message': error.details.get('keyValue')}
+        except errors.OperationFailure:
+            self.__update_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__update_result: Dict = {'failed': 'An error has occurred'}
 
@@ -119,5 +125,7 @@ class UsersService:
             self.__delete_result: Dict = {'success': f'{result} user(s) deleted'} if result > 0 \
                 else {'failed': 'User not deleted',
                       '_id': str(_id)}
+        except errors.OperationFailure:
+            self.__delete_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:
             self.__delete_result: Dict = {'failed': 'An error has occurred'}

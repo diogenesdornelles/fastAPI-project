@@ -18,7 +18,7 @@ router: APIRouter = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-controller = TokensController()
+controller: TokensController = TokensController()
 
 
 @router.post("/clients", response_model=None)

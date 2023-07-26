@@ -7,13 +7,13 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-controller: RemoveController = RemoveController()
-
 router: APIRouter = APIRouter(
     prefix="/removefiles",
     tags=["removefiles"],
     responses={404: {"description": "Not found"}},
 )
+
+controller: RemoveController = RemoveController()
 
 URL_STATIC_PHOTOS_PRODUCTS = os.environ.get("URL_STATIC_PHOTOS_PRODUCTS")
 
