@@ -1,32 +1,33 @@
 from typing import Dict, List
 from services import ClientsService
+from .interface import InterfaceEntitiesController
 
 
-class ClientsController:
+class ClientsController(InterfaceEntitiesController):
     def __init__(self):
         self.service: ClientsService = ClientsService()
 
-    def get_all_clients(self) -> List[Dict]:
-        self.service.get_all_clients()
+    def get_all(self) -> List[Dict]:
+        self.service.get_all()
         response: List[Dict] = self.service.all_clients
         return response
 
-    def get_one_client_by_id(self, _id: str) -> Dict:
-        self.service.get_one_client_by_id(_id)
+    def get_one_by_id(self, _id: str) -> Dict:
+        self.service.get_one_by_id(_id)
         response: Dict = self.service.client
         return response
 
-    def create_one_client(self, client: Dict):
-        self.service.create_one_client(client)
+    def create_one(self, client: Dict):
+        self.service.create_one(client)
         response: Dict = self.service.create_result
         return response
 
-    def update_one_client_by_id(self, updated: Dict):
-        self.service.update_one_client_by_id(updated)
+    def update_one_by_id(self, updates: Dict):
+        self.service.update_one_by_id(updates)
         response: Dict = self.service.update_result
         return response
 
-    def delete_one_client_by_id(self, _id: str) -> Dict:
-        self.service.delete_one_client_by_id(_id)
+    def delete_one_by_id(self, _id: str) -> Dict:
+        self.service.delete_one_by_id(_id)
         response: Dict = self.service.delete_result
         return response

@@ -3,9 +3,10 @@ from typing import Dict, List, Any
 from bson.objectid import ObjectId
 from pymongo import errors
 from database import DB
+from .interface import InterfaceEntitiesServices
 
 
-class ProductsService:
+class ProductsService(InterfaceEntitiesServices):
     def __init__(self):
         self.database = DB.products
         self.__all_products = []
@@ -49,7 +50,7 @@ class ProductsService:
     def delete_photo_result(self) -> Dict:
         return self.__delete_photo_result
 
-    def get_all_products(self) -> None:
+    def get_all(self) -> None:
         try:
             response: List[Dict] = self.database.find()
             response: List[Dict] = list(response)
@@ -62,7 +63,7 @@ class ProductsService:
         except Exception:
             self.__all_products: Dict = {'failed': 'An error has occurred'}
 
-    def get_one_product_by_id(self, _id: str, projection: bool = False) -> None:
+    def get_one_by_id(self, _id: str, projection: bool = False) -> None:
         _id: ObjectId = ObjectId(_id)
         try:
             if projection:
@@ -82,7 +83,7 @@ class ProductsService:
         except Exception:
             self.__product: Dict = {'failed': 'An error has occurred'}
 
-    def create_one_product(self, product: Dict) -> None:
+    def create_one(self, product: Dict) -> None:
         product["created_at"]: datetime = datetime.now()
         product["last_modified"]: datetime = product["created_at"]
         product["photos"]: List = []
@@ -104,7 +105,7 @@ class ProductsService:
         except Exception:
             self.__create_result: Dict = {'failed': 'An error has occurred'}
 
-    def update_one_product_by_id(self, updates: Dict) -> None:
+    def update_one_by_id(self, updates: Dict) -> None:
         if 'product_id' in updates:
             _id: ObjectId = ObjectId(updates['product_id'])
             del updates['product_id']
@@ -134,7 +135,7 @@ class ProductsService:
         except Exception:
             self.__update_result: Dict = {'failed': 'An error has occurred'}
 
-    def delete_one_product_by_id(self, _id: str) -> None:
+    def delete_one_by_id(self, _id: str) -> None:
         _id: ObjectId = ObjectId(_id)
         try:
             result: int = self.database.delete_one({"_id": _id}).deleted_count

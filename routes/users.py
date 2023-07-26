@@ -30,7 +30,7 @@ async def get_one_user_by_id(user_id: Annotated[str | None, Query(regex=r'^[a-f0
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
     if user_id:
-        result: Dict = controller.get_one_user_by_id(user_id)
+        result: Dict = controller.get_one_by_id(user_id)
         if 'failed' in result:
             if '_id' in result:
                 return JSONResponse(content=result,
@@ -54,7 +54,7 @@ async def get_all_users(verify_token: VerifyTokenUser) -> Union[JSONResponse, Di
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
-    result: List[Dict] | Dict = controller.get_all_users()
+    result: List[Dict] | Dict = controller.get_all()
     if 'failed' in result:
         return JSONResponse(content=result,
                             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -67,7 +67,7 @@ async def get_all_users(verify_token: VerifyTokenUser) -> Union[JSONResponse, Di
 @router.post("/", response_model=Union[Success, Failed])
 async def create_one_user(user: User) -> Union[JSONResponse, Dict]:
     user: Dict = user.to_dict()
-    result: Dict = controller.create_one_user(user)
+    result: Dict = controller.create_one(user)
     if 'failed' in result:
         if 'message' in result:
             return JSONResponse(content=result,
@@ -89,7 +89,7 @@ async def update_one_user_by_id(updated: UserUpdate,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
     updated: Dict = updated.to_dict()
-    result: Dict = controller.update_one_user_by_id(updated)
+    result: Dict = controller.update_one_by_id(updated)
     if 'failed' in result:
         if 'message' in result:
             return JSONResponse(content=result,
@@ -114,7 +114,7 @@ async def delete_one_user_by_id(user_id: Annotated[str | None, Query(regex=r'^[a
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
     if user_id:
-        result: Dict = controller.delete_one_user_by_id(user_id)
+        result: Dict = controller.delete_one_by_id(user_id)
         if 'failed' in result:
             if '_id' in result:
                 return JSONResponse(content=result,

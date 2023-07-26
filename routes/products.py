@@ -22,7 +22,7 @@ async def get_all_products(verify_token: VerifyTokenUser) -> Union[JSONResponse,
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
-    result: List[Dict] | Dict = controller.get_all_products()
+    result: List[Dict] | Dict = controller.get_all()
     if 'failed' in result:
         return JSONResponse(content=result,
                             status_code=status.HTTP_404_NOT_FOUND,
@@ -44,7 +44,7 @@ async def get_one_client_by_id(product_id: Annotated[str | None, Query(regex=r'^
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
     if product_id:
-        result: Dict = controller.get_one_product_by_id(product_id)
+        result: Dict = controller.get_one_by_id(product_id)
         if 'failed' in result:
             return JSONResponse(content=result,
                                 status_code=status.HTTP_404_NOT_FOUND,
@@ -67,7 +67,7 @@ async def create_one_product(product: Product,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
     product: Dict = product.to_dict()
-    result: Dict = controller.create_one_product(product)
+    result: Dict = controller.create_one(product)
     if 'failed' in result:
         if 'message' in result:
             return JSONResponse(content=result,
@@ -89,7 +89,7 @@ async def update_one_product_by_id(updated: ProductUpdate,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
     updated: Dict = updated.to_dict()
-    result: Dict = controller.update_one_product_by_id(updated)
+    result: Dict = controller.update_one_by_id(updated)
     if 'failed' in result:
         if 'message' in result:
             return JSONResponse(content=result,
@@ -114,7 +114,7 @@ async def delete_one_product_by_id(product_id: Annotated[str | None, Query(regex
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
     if product_id:
-        result: Dict = controller.delete_one_product_by_id(product_id)
+        result: Dict = controller.delete_one_by_id(product_id)
         if 'failed' in result:
             if 'message' in result:
                 return JSONResponse(content=result,

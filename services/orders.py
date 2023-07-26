@@ -5,6 +5,7 @@ from pymongo import errors
 from pymongo.cursor import Cursor
 from services import ClientsService, ProductsService
 from database import DB
+from .interface import InterfaceEntitiesServices
 
 
 class MakeOrder:
@@ -158,7 +159,7 @@ class UpdateOrder:
             self.decrease_quantity_result: Dict = {'failed': 'An error has occurred'}
 
 
-class OrdersService:
+class OrdersService(InterfaceEntitiesServices):
     def __init__(self):
         self.database_orders = DB.orders
         self.database_products = ProductsService()
@@ -193,7 +194,7 @@ class OrdersService:
     def delete_result(self) -> Dict:
         return self.__delete_result
 
-    def get_all_orders(self) -> None:
+    def get_all(self) -> None:
         try:
             response: Cursor[Any] = self.database_orders.find()
             response: List[Dict] = list(response)
@@ -206,7 +207,7 @@ class OrdersService:
         except Exception:
             self.__all_orders: Dict = {'failed': 'An error has occurred'}
 
-    def get_one_order_by_id(self, _id: str) -> None:
+    def get_one_by_id(self, _id: str) -> None:
         _id: ObjectId = ObjectId(_id)
         try:
             response: Dict = self.database_orders.find_one({"_id": _id})
@@ -220,7 +221,7 @@ class OrdersService:
         except Exception:
             self.__order: Dict = {'failed': 'An error has occurred'}
 
-    def create_one_order(self, order: Dict) -> None | Dict:
+    def create_one(self, order: Dict) -> None | Dict:
         """
         Create a single order.
 
@@ -280,10 +281,10 @@ class OrdersService:
             self.__create_result: Dict = {'failed': 'Any products can be added',
                                           'items': order.not_ables_to_save}
 
-    def update_one_order_by_id(self, updates: Dict) -> None:
+    def update_one_by_id(self, updates: Dict) -> None:
         _id: str = updates["order_id"]
         del updates["order_id"]
-        self.get_one_order_by_id(_id)
+        self.get_one_by_id(_id)
         if 'failed' in self.order:
             self.__update_result: Dict = {'failed': 'Order not founded',
                                           '_id': _id}
@@ -345,7 +346,7 @@ class OrdersService:
             else:
                 self.__update_result: Dict = {'failed': 'Any items can be modified'}
 
-    def delete_one_order_by_id(self, _id: str) -> None:
+    def delete_one_by_id(self, _id: str) -> None:
         try:
             # convert str to objectid
             _id: ObjectId = ObjectId(_id)

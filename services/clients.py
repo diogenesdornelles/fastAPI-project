@@ -4,9 +4,10 @@ from bson.objectid import ObjectId
 from pymongo import errors
 from database import DB
 from utils import hash_value
+from .interface import InterfaceEntitiesServices
 
 
-class ClientsService:
+class ClientsService(InterfaceEntitiesServices):
     def __init__(self):
         self.database = DB.clients
         self.__all_clients = []
@@ -55,7 +56,7 @@ class ClientsService:
     def delete_photo_result(self) -> Dict:
         return self.__delete_photo_result
 
-    def get_all_clients(self) -> None:
+    def get_all(self) -> None:
         try:
             response: List[Dict] = self.database.find({},
                                                       {'password': 0})
@@ -69,7 +70,7 @@ class ClientsService:
         except Exception:
             self.__all_clients = {'failed': 'An error has occurred'}
 
-    def get_one_client_by_id(self, _id: str, projection: bool = False) -> None:
+    def get_one_by_id(self, _id: str, projection: bool = False) -> None:
         _id: ObjectId = ObjectId(_id)
         try:
             if projection:
@@ -94,7 +95,7 @@ class ClientsService:
     def get_clients_by_properties(self, properties: Dict, projection: bool = False):
         pass
 
-    def create_one_client(self, client: Dict) -> None:
+    def create_one(self, client: Dict) -> None:
         client["created_at"]: datetime = datetime.now()
         client["last_modified"]: datetime = datetime.now()
         client["orders"]: List = []
@@ -119,7 +120,7 @@ class ClientsService:
         except Exception:
             self.__create_result: Dict = {'failed': 'An error has occurred'}
 
-    def update_one_client_by_id(self, updates: Dict) -> None:
+    def update_one_by_id(self, updates: Dict) -> None:
         _id: ObjectId = ObjectId(updates["client_id"])
         if 'photos' in updates:
             del updates['photos']
@@ -147,7 +148,7 @@ class ClientsService:
         except Exception:
             self.__update_result: Dict = {'failed': 'An error has occurred'}
 
-    def delete_one_client_by_id(self, _id: str) -> None:
+    def delete_one_by_id(self, _id: str) -> None:
         _id: ObjectId = ObjectId(_id)
         try:
             result: int = self.database.delete_one({"_id": _id}).deleted_count

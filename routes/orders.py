@@ -28,7 +28,7 @@ async def get_one_order_by_id(order_id: Annotated[str | None, Query(regex=r'^[a-
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
     if order_id:
-        result: Dict = controller.get_one_order_by_id(order_id)
+        result: Dict = controller.get_one_by_id(order_id)
         if 'failed' in result:
             if '_id' in result:
                 return JSONResponse(content=result,
@@ -52,7 +52,7 @@ async def get_all_orders(verify_token: VerifyTokenUser) -> JSONResponse:
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
-    result: List[Dict] = controller.get_all_orders()
+    result: List[Dict] = controller.get_all()
     if 'failed' in result:
         return JSONResponse(content=result,
                             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -70,7 +70,7 @@ async def create_one_order(order: Order,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
     order: Dict = order.to_dict()
-    result: Dict = controller.create_one_order(order)
+    result: Dict = controller.create_one(order)
     if 'failed' in result:
         if 'message' in result:
             return JSONResponse(content=result,
@@ -92,7 +92,7 @@ async def update_one_order_by_id(updated: OrderUpdate,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
     order: Dict = updated.to_dict()
-    result: Dict = controller.update_one_order_by_id(order)
+    result: Dict = controller.update_one_by_id(order)
     if 'failed' in result:
         if 'message' in result:
             return JSONResponse(content=result,
@@ -117,7 +117,7 @@ async def delete_one_order_by_id(order_id: Annotated[str | None, Query(regex=r'^
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
     if order_id:
-        result: Dict = controller.delete_one_order_by_id(order_id)
+        result: Dict = controller.delete_one_by_id(order_id)
         if 'failed' in result:
             if '_id' in result:
                 return JSONResponse(content=result,
