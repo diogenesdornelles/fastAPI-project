@@ -1,9 +1,11 @@
 from typing import List, Dict
 from services import OrdersService
-from .interface import InterfaceEntitiesController
+from .interface import IController
+from models import Item
+from models import ChangeStatus
 
 
-class OrdersController(InterfaceEntitiesController):
+class OrdersController(IController):
     def __init__(self):
         self.service: OrdersService = OrdersService()
 
@@ -23,7 +25,20 @@ class OrdersController(InterfaceEntitiesController):
         return response
 
     def update_one_by_id(self, updates: Dict) -> Dict:
-        self.service.update_one_by_id(updates)
+        pass
+
+    def add_item(self, order_id: str, item: Item) -> Dict:
+        self.service.add_product(order_id, item)
+        response: Dict = self.service.update_result
+        return response
+
+    def remove_item(self, order_id: str, product_id: str) -> Dict:
+        self.service.remove_product(order_id, product_id)
+        response: Dict = self.service.update_result
+        return response
+
+    def change_status(self, status: ChangeStatus) -> Dict:
+        self.service.change_status(status)
         response: Dict = self.service.update_result
         return response
 

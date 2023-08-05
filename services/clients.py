@@ -4,10 +4,11 @@ from bson.objectid import ObjectId
 from pymongo import errors
 from database import DB
 from utils import hash_value
-from .interface import InterfaceEntitiesServices
+from .interface import IServices
+from models import Client, ClientUpdate
 
 
-class ClientsService(InterfaceEntitiesServices):
+class ClientsService(IServices):
     def __init__(self):
         self.database = DB.clients
         self.__all_clients = []
@@ -95,39 +96,39 @@ class ClientsService(InterfaceEntitiesServices):
     def get_clients_by_properties(self, properties: Dict, projection: bool = False):
         pass
 
-    def create_one(self, client: Dict) -> None:
-        client["created_at"]: datetime = datetime.now()
-        client["last_modified"]: datetime = datetime.now()
-        client["orders"]: List = []
-        client["photos"]: List = []
-        client['password']: str = hash_value(client['password'])
-        client['is_client']: bool = True
+    def create_one(self, client: Client) -> None:
+        client.created_at = datetime.now()
+        client.last_modified = datetime.now()
+        client.orders = []
+        client.photos = []
+        client.password = hash_value(client.password)
+        client.is_client = True
+        client: Dict = client.to_dict()
         try:
             response: Any = self.database.insert_one(client).inserted_id
             if response:
-                self.__create_result: Dict = {'success': 'Created client',
+                self.__create_result: Dict = {'success': 'created client',
                                               '_id': str(response)}
             else:
-                self.__create_result: Dict = {'failed': 'Client not created'}
+                self.__create_result: Dict = {'failed': 'client not created'}
         except errors.DuplicateKeyError as error:
-            self.__create_result: Dict = {'failed': "Duplicate key error",
+            self.__create_result: Dict = {'failed': "duplicate key error",
                                           'message': error.details.get('keyValue')}
         except errors.WriteError as error:
             self.__create_result: Dict = {'failed': "Validate error",
                                           'message': error.details.get('keyValue')}
         except errors.OperationFailure:
-            self.__create_result: Dict = {'failed': 'An error has occurred: database operation fails'}
+            self.__create_result: Dict = {'failed': 'an error has occurred: database operation fails'}
         except Exception:
-            self.__create_result: Dict = {'failed': 'An error has occurred'}
+            self.__create_result: Dict = {'failed': 'an error has occurred'}
 
-    def update_one_by_id(self, updates: Dict) -> None:
-        _id: ObjectId = ObjectId(updates["client_id"])
-        if 'photos' in updates:
-            del updates['photos']
-        del updates["client_id"]
-        updates["last_modified"]: datetime = datetime.now()
+    def update_one_by_id(self, updates: ClientUpdate) -> None:
+        _id: ObjectId = ObjectId(updates.client_id)
+        del updates.client_id
+        updates.last_modified = datetime.now()
         if 'password' in updates:
-            updates['password']: str = hash_value(updates['password'])
+            updates.password = hash_value(updates.password)
+        updates: Dict = updates.to_dict()
         all_updates: Dict = {
             "$set": updates
         }
@@ -138,27 +139,27 @@ class ClientsService(InterfaceEntitiesServices):
                 else {'failed': 'Client not updated',
                       '_id': updates["client_id"]}
         except errors.DuplicateKeyError as error:
-            self.__update_result: Dict = {'failed': "Duplicate key error",
+            self.__update_result: Dict = {'failed': "duplicate key error",
                                           'message': error.details.get('keyValue')}
         except errors.WriteError as error:
-            self.__update_result: Dict = {'failed': "Validate error",
+            self.__update_result: Dict = {'failed': "validate error",
                                           'message': error.details.get('keyValue')}
         except errors.OperationFailure:
-            self.__update_result: Dict = {'failed': 'An error has occurred: database operation fails'}
+            self.__update_result: Dict = {'failed': 'an error has occurred: database operation fails'}
         except Exception:
-            self.__update_result: Dict = {'failed': 'An error has occurred'}
+            self.__update_result: Dict = {'failed': 'an error has occurred'}
 
-    def delete_one_by_id(self, _id: str) -> None:
-        _id: ObjectId = ObjectId(_id)
+    def delete_one_by_id(self, client_id: str) -> None:
+        client_id: ObjectId = ObjectId(client_id)
         try:
-            result: int = self.database.delete_one({"_id": _id}).deleted_count
+            result: int = self.database.delete_one({"_id": client_id}).deleted_count
             self.__delete_result: Dict = {'success': f'{result} client(s) deleted'} if result > 0 \
-                else {'failed': 'Client not deleted',
-                      '_id': str(_id)}
+                else {'failed': 'client not deleted',
+                      '_id': str(client_id)}
         except errors.OperationFailure:
-            self.__delete_result: Dict = {'failed': 'An error has occurred: database operation fails'}
+            self.__delete_result: Dict = {'failed': 'an error has occurred: database operation fails'}
         except Exception:
-            self.__delete_result: Dict = {'failed': 'An error has occurred'}
+            self.__delete_result: Dict = {'failed': 'an error has occurred'}
 
     def insert_new_order_on_client(self, order_id: str) -> None:
         client_id: ObjectId = ObjectId(self.client['_id'])
@@ -176,9 +177,9 @@ class ClientsService(InterfaceEntitiesServices):
             self.__insert_new_order_result: Dict = {'success': 'Order inserted',
                                                     'quantity': result}
         except errors.OperationFailure:
-            self.__insert_new_order_result: Dict = {'failed': 'An error has occurred: database operation fails'}
+            self.__insert_new_order_result: Dict = {'failed': 'an error has occurred: database operation fails'}
         except Exception:
-            self.__insert_new_order_result: Dict = {'failed': 'An error has occurred'}
+            self.__insert_new_order_result: Dict = {'failed': 'an error has occurred'}
 
     def insert_new_photo_on_client(self, photo_url: str) -> None:
         client_id: ObjectId = ObjectId(self.client['_id'])
@@ -192,12 +193,12 @@ class ClientsService(InterfaceEntitiesServices):
         }
         try:
             result: int = self.database.update_one(query, update).modified_count
-            self.__insert_new_photo_result: Dict = {'success': 'Photo inserted',
+            self.__insert_new_photo_result: Dict = {'success': 'photo inserted',
                                                     'quantity': result}
         except errors.OperationFailure:
-            self.__insert_new_photo_result: Dict = {'failed': 'An error has occurred: database operation fails'}
+            self.__insert_new_photo_result: Dict = {'failed': 'an error has occurred: database operation fails'}
         except Exception:
-            self.__insert_new_photo_result: Dict = {'failed': 'An error has occurred'}
+            self.__insert_new_photo_result: Dict = {'failed': 'an error has occurred'}
 
     def remove_photo_from_client(self, photo_url: str) -> None:
         client_id: ObjectId = ObjectId(self.client['_id'])
@@ -211,9 +212,9 @@ class ClientsService(InterfaceEntitiesServices):
         }
         try:
             result: int = self.database.update_one(query, pull).modified_count
-            self.__delete_photo_result: Dict = {'success': 'Photo removed',
+            self.__delete_photo_result: Dict = {'success': 'photo removed',
                                                 'quantity': result}
         except errors.OperationFailure:
-            self.__delete_photo_result: Dict = {'failed': 'An error has occurred: database operation fails'}
+            self.__delete_photo_result: Dict = {'failed': 'an error has occurred: database operation fails'}
         except Exception:
-            self.__delete_photo_result: Dict = {'failed': 'An error has occurred'}
+            self.__delete_photo_result: Dict = {'failed': 'an error has occurred'}

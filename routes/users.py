@@ -66,7 +66,6 @@ async def get_all_users(verify_token: VerifyTokenUser) -> Union[JSONResponse, Di
 
 @router.post("/", response_model=Union[Success, Failed])
 async def create_one_user(user: User) -> Union[JSONResponse, Dict]:
-    user: Dict = user.to_dict()
     result: Dict = controller.create_one(user)
     if 'failed' in result:
         if 'message' in result:
@@ -82,14 +81,13 @@ async def create_one_user(user: User) -> Union[JSONResponse, Dict]:
 
 
 @router.put("/", response_model=Union[Success, Failed])
-async def update_one_user_by_id(updated: UserUpdate,
+async def update_one_user_by_id(updates: UserUpdate,
                                 verify_token: VerifyTokenUser) -> Union[JSONResponse, Dict]:
     if 'failed' in verify_token:
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
-    updated: Dict = updated.to_dict()
-    result: Dict = controller.update_one_by_id(updated)
+    result: Dict = controller.update_one_by_id(updates)
     if 'failed' in result:
         if 'message' in result:
             return JSONResponse(content=result,

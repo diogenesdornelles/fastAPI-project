@@ -6,6 +6,7 @@ from models import Product, ProductUpdate, ProductResponse, Failed, Success
 from serializers import ProductSerializer
 from dependencies import VerifyTokenUser
 
+
 router: APIRouter = APIRouter(
     prefix="/products",
     tags=["products"],
@@ -66,7 +67,6 @@ async def create_one_product(product: Product,
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
-    product: Dict = product.to_dict()
     result: Dict = controller.create_one(product)
     if 'failed' in result:
         if 'message' in result:
@@ -82,14 +82,13 @@ async def create_one_product(product: Product,
 
 
 @router.put("/", response_model=Union[Success, Failed])
-async def update_one_product_by_id(updated: ProductUpdate,
+async def update_one_product_by_id(updates: ProductUpdate,
                                    verify_token: VerifyTokenUser) -> Union[JSONResponse, Dict]:
     if 'failed' in verify_token:
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
-    updated: Dict = updated.to_dict()
-    result: Dict = controller.update_one_by_id(updated)
+    result: Dict = controller.update_one_by_id(updates)
     if 'failed' in result:
         if 'message' in result:
             return JSONResponse(content=result,

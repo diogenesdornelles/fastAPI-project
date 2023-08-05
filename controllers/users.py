@@ -1,9 +1,10 @@
 from typing import Dict, List
 from services import UsersService
-from .interface import InterfaceEntitiesController
+from .interface import IController
+from models import User, UserUpdate
 
 
-class UsersController(InterfaceEntitiesController):
+class UsersController(IController):
     def __init__(self):
         self.service: UsersService = UsersService()
 
@@ -17,12 +18,12 @@ class UsersController(InterfaceEntitiesController):
         response: Dict = self.service.user
         return response
 
-    def create_one(self, user: Dict) -> Dict:
+    def create_one(self, user: User) -> Dict:
         self.service.create_one(user)
         response: Dict = self.service.create_result
         return response
 
-    def update_one_by_id(self, updates: Dict) -> Dict:
+    def update_one_by_id(self, updates: UserUpdate) -> Dict:
         self.service.update_one_by_id(updates)
         response: Dict = self.service.update_result
         return response

@@ -44,7 +44,7 @@ orders_validator: Dict = {
                 }
             },
             "items": {
-                'bsonType': "array",
+                'bsonType': ["array", "object"],
                 'description': "Products array is required",
                 'minItems': 0,
                 'items': {

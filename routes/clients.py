@@ -73,7 +73,6 @@ async def create_one_client(verify_token: VerifyTokenUser,
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
-    client: Dict = client.to_dict()
     result: Dict | Failed = controller.create_one(client)
     if 'failed' in result:
         if 'message' in result:
@@ -90,14 +89,13 @@ async def create_one_client(verify_token: VerifyTokenUser,
 
 @router.put("/", response_model=Union[Success, Failed])
 async def update_one_client_by_id(verify_token: VerifyTokenUser,
-                                  updated: ClientUpdate) \
+                                  updates: ClientUpdate) \
         -> Union[JSONResponse, Dict]:
     if 'failed' in verify_token:
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
-    updated: Dict = updated.to_dict()
-    result: Dict = controller.update_one_by_id(updated)
+    result: Dict = controller.update_one_by_id(updates)
     if 'failed' in result:
         if 'message' in result:
             return JSONResponse(content=result,

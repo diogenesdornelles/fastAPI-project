@@ -4,10 +4,11 @@ from bson.objectid import ObjectId
 from pymongo import errors
 from database import DB
 from utils import hash_value
-from .interface import InterfaceEntitiesServices
+from .interface import IServices
+from models import User, UserUpdate
 
 
-class UsersService(InterfaceEntitiesServices):
+class UsersService(IServices):
     def __init__(self):
         self.database = DB.users
         self.__all_users = []
@@ -51,7 +52,7 @@ class UsersService(InterfaceEntitiesServices):
             else:
                 self.__all_users: List = []
         except Exception:
-            self.__all_users: Dict = {'failed': 'An error has occurred'}
+            self.__all_users: Dict = {'failed': 'an error has occurred'}
 
     def get_one_by_id(self, _id: str) -> None:
         _id = ObjectId(_id)
@@ -61,45 +62,47 @@ class UsersService(InterfaceEntitiesServices):
             if response:
                 self.__user: Dict = response
             else:
-                self.__user: Dict = {'failed': 'User not founded',
+                self.__user: Dict = {'failed': 'user not founded',
                                      '_id': str(_id)}
         except errors.OperationFailure:
-            self.__user: Dict = {'failed': 'An error has occurred: database operation fails'}
+            self.__user: Dict = {'failed': 'an error has occurred: database operation fails'}
         except Exception:
-            self.__user = {'failed': 'An error has occurred'}
+            self.__user = {'failed': 'an error has occurred'}
 
     def get_users_by_properties(self, properties: Dict, projection: bool = False):
         pass
 
-    def create_one(self, user: Dict) -> None:
-        user["created_at"]: datetime = datetime.now()
-        user["last_modified"]: datetime = datetime.now()
-        user['password']: str = hash_value(user['password'])
-        user['is_user']: bool = True
+    def create_one(self, user: User) -> None:
+        user.created_at = datetime.now()
+        user.last_modified = datetime.now()
+        user.password = hash_value(user.password)
+        user.is_user = True
+        user: Dict = user.to_dict()
         try:
             response: Any = self.database.insert_one(user).inserted_id
             if response:
-                self.__create_result: Dict = {'success': 'Created user',
+                self.__create_result: Dict = {'success': 'created user',
                                               '_id': str(response)}
             else:
-                self.__create_result: Dict = {'failed': 'An error has occurred'}
+                self.__create_result: Dict = {'failed': 'an error has occurred'}
         except errors.DuplicateKeyError as error:
-            self.__create_result: Dict = {'failed': "Duplicate key error",
+            self.__create_result: Dict = {'failed': "duplicate key error",
                                           'message': error.details.get('keyValue')}
         except errors.WriteError as error:
-            self.__create_result: Dict = {'failed': "Validate error",
+            self.__create_result: Dict = {'failed': "validate error",
                                           'message': error.details.get('keyValue')}
         except errors.OperationFailure:
-            self.__create_result: Dict = {'failed': 'An error has occurred: database operation fails'}
+            self.__create_result: Dict = {'failed': 'an error has occurred: database operation fails'}
         except Exception:
-            self.__create_result: Dict = {'failed': 'An error has occurred'}
+            self.__create_result: Dict = {'failed': 'an error has occurred'}
 
-    def update_one_by_id(self, updates: Dict) -> None:
-        _id: ObjectId = ObjectId(updates["user_id"])
-        del updates["user_id"]
-        updates["last_modified"]: datetime = datetime.now()
+    def update_one_by_id(self, updates: UserUpdate) -> None:
+        _id: ObjectId = ObjectId(updates.user_id)
+        del updates.user_id
+        updates.last_modified = datetime.now()
         if 'password' in updates:
-            updates['password']: str = hash_value(updates['password'])
+            updates.password = hash_value(updates.password)
+        updates: Dict = updates.to_dict()
         all_updates: Dict = {
             "$set": updates
         }
@@ -109,24 +112,24 @@ class UsersService(InterfaceEntitiesServices):
                 else {'failed': 'User not updated',
                       '_id': str(_id)}
         except errors.DuplicateKeyError as error:
-            self.__update_result: Dict = {'failed': "Duplicate key error",
+            self.__update_result: Dict = {'failed': "duplicate key error",
                                           'message': error.details.get('keyValue')}
         except errors.WriteError as error:
-            self.__update_result: Dict = {'failed': "Validate error",
+            self.__update_result: Dict = {'failed': "validate error",
                                           'message': error.details.get('keyValue')}
         except errors.OperationFailure:
-            self.__update_result: Dict = {'failed': 'An error has occurred: database operation fails'}
+            self.__update_result: Dict = {'failed': 'an error has occurred: database operation fails'}
         except Exception:
-            self.__update_result: Dict = {'failed': 'An error has occurred'}
+            self.__update_result: Dict = {'failed': 'an error has occurred'}
 
     def delete_one_by_id(self, _id: str) -> None:
         _id: ObjectId = ObjectId(_id)
         try:
             result: int = self.database.delete_one({"_id": _id}).deleted_count
             self.__delete_result: Dict = {'success': f'{result} user(s) deleted'} if result > 0 \
-                else {'failed': 'User not deleted',
+                else {'failed': 'user not deleted',
                       '_id': str(_id)}
         except errors.OperationFailure:
-            self.__delete_result: Dict = {'failed': 'An error has occurred: database operation fails'}
+            self.__delete_result: Dict = {'failed': 'an error has occurred: database operation fails'}
         except Exception:
-            self.__delete_result: Dict = {'failed': 'An error has occurred'}
+            self.__delete_result: Dict = {'failed': 'an error has occurred'}

@@ -3,10 +3,11 @@ from typing import Dict, List, Any
 from bson.objectid import ObjectId
 from pymongo import errors
 from database import DB
-from .interface import InterfaceEntitiesServices
+from .interface import IServices
+from models import Product, ProductUpdate
 
 
-class ProductsService(InterfaceEntitiesServices):
+class ProductsService(IServices):
     def __init__(self):
         self.database = DB.products
         self.__all_products = []
@@ -83,10 +84,11 @@ class ProductsService(InterfaceEntitiesServices):
         except Exception:
             self.__product: Dict = {'failed': 'An error has occurred'}
 
-    def create_one(self, product: Dict) -> None:
-        product["created_at"]: datetime = datetime.now()
-        product["last_modified"]: datetime = product["created_at"]
-        product["photos"]: List = []
+    def create_one(self, product: Product) -> None:
+        product.created_at = datetime.now()
+        product.last_modified = product.created_at
+        product.photos = []
+        product: Dict = product.to_dict()
         try:
             response: Any = self.database.insert_one(product).inserted_id
             if response:
@@ -105,25 +107,19 @@ class ProductsService(InterfaceEntitiesServices):
         except Exception:
             self.__create_result: Dict = {'failed': 'An error has occurred'}
 
-    def update_one_by_id(self, updates: Dict) -> None:
-        if 'product_id' in updates:
-            _id: ObjectId = ObjectId(updates['product_id'])
-            del updates['product_id']
-        else:
-            _id: ObjectId = ObjectId(updates["_id"])
-            del updates["_id"]
-        if 'photos' in updates:
-            del updates['photos']
-        updates["last_modified"]: datetime = datetime.now()
+    def update_one_by_id(self, updates: ProductUpdate) -> None:
+        product_id: ObjectId = ObjectId(updates.product_id)
+        updates.last_modified = datetime.now()
+        updates: Dict = updates.to_dict()
         all_updates: Dict = {
             "$set": updates
         }
         try:
-            result: int = self.database.update_one({"_id": _id},
+            result: int = self.database.update_one({"_id": product_id},
                                                    all_updates).modified_count
             self.__update_result: Dict = {'success': f'{result} product(s) updated'} if result > 0 \
                 else {'failed': 'Product not updated',
-                      '_id': str(_id)}
+                      '_id': str(product_id)}
         except errors.DuplicateKeyError as error:
             self.__update_result: Dict = {'failed': "Duplicate key error",
                                           'message': error.details.get('keyValue')}
@@ -179,7 +175,7 @@ class ProductsService(InterfaceEntitiesServices):
         try:
             result: int = self.database.update_one(query, pull).modified_count
             self.__delete_photo_result: Dict = {'success': 'Photo removed',
-                                                    'quantity': result}
+                                                'quantity': result}
         except errors.OperationFailure:
             self.__delete_photo_result: Dict = {'failed': 'An error has occurred: database operation fails'}
         except Exception:

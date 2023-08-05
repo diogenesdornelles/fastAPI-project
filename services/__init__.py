@@ -3,3 +3,4 @@ from .products import ProductsService
 from .orders import OrdersService
 from .tokens import TokensService
 from .users import UsersService
+from .interface import IServices

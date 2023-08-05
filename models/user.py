@@ -69,16 +69,36 @@ class User(BaseModel):
 
 class UserUpdate(BaseModel):
     user_id: str = Field(min_length=1, description="Client ID to update")
-    name: Optional[str] = Field(min_length=3, description="Client name")
-    email: Optional[str] = Field(description="Client email")
-    cpf: Optional[str] = Field(description="Client cpf")
-    phone: Optional[str] = Field(description="Client phone")
-    is_user: Optional[bool] = Field(description="Client status")
+    name: Optional[str] = Field(min_length=3, description="Client new name")
+    email: Optional[str] = Field(description="Client new email")
+    cpf: Optional[str] = Field(description="Client new cpf")
+    phone: Optional[str] = Field(description="Client new phone")
+    is_user: Optional[bool] = Field(description="Client new status")
+    password: Optional[str] = Field(description="User new password")
 
     @validator('user_id')
     def user_id_must_be_valid(cls, value: str):
         if not re.match(PATTERN, value):
             raise ValueError('user_id must be only numeric, lowercase and length 24')
+        return value
+
+    @validator('password')
+    def password_must_be_valid(cls, value: str):
+        if len(value) < 8:
+            raise ValueError('Password minimum length is 8')
+        symbol_cont = 0
+        letter_cont = 0
+        symbols: str = "!@#$%^&*()_-+={}[]|:;<>,.?/~`"
+        for char in value:
+            if symbols.count(char) > 0:
+                symbol_cont += 1
+            if char.isalpha():
+                letter_cont += 1
+        if symbol_cont < 1:
+            raise ValueError('Password must contain at least 1 symbol !@#$%^&*()_'
+                             '-+={}[]|:;<>,.?/~`')
+        if letter_cont < 1:
+            raise ValueError('Password must contain at least 1 letter')
         return value
 
     @validator('cpf')

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Dict
 
 
-class InterfaceEntitiesServices(ABC):
+class IServices(ABC):
     @abstractmethod
     def get_all(self) -> None:
         pass
