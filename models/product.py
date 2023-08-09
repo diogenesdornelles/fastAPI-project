@@ -1,7 +1,8 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field, validator
 from decimal import Decimal, ROUND_DOWN
 import re
+from datetime import datetime
 
 PATTERN = r'^[a-f0-9]{24}$'
 
@@ -22,6 +23,35 @@ class Product(BaseModel):
 
     def to_dict(self):
         return Product.dict(self, exclude_none=True, exclude_unset=True)
+
+
+class FullProduct(Product):
+    created_at: datetime = Field(default_factory=datetime.now)
+    last_modified: datetime = Field(default_factory=datetime.now)
+    photos: List = Field(default=[])
+
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'brand': self.brand,
+            'price': self.price,
+            'description': self.description,
+            'quantity': self.quantity,
+            'created_at': self.created_at,
+            'last_modified': self.last_modified,
+            'photos': self.photos,
+        }
+
+
+class ProductQuery(BaseModel):
+    name: Optional[str] = Field(min_length=3, description="Product name", default=None)
+    brand: Optional[str] = Field(min_length=2, description="Product brand", default=None)
+    min_price: Optional[float] = Field(gt=0, description="Product price", default=None)
+    max_price: Optional[float] = Field(gt=0, description="Product price", default=None)
+    description: Optional[str] = Field(min_length=3, description="Product description", default=None)
+
+    def to_dict(self):
+        return ProductQuery.dict(self, exclude_none=True, exclude_unset=True)
 
 
 class ProductUpdate(BaseModel):

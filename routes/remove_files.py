@@ -2,7 +2,7 @@ from typing import Annotated, Optional
 import os
 from fastapi import APIRouter, Query, status
 from fastapi.responses import JSONResponse
-from controllers import RemoveController
+from controllers import UploadsController
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
@@ -13,7 +13,7 @@ router: APIRouter = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-controller: RemoveController = RemoveController()
+controller: UploadsController = UploadsController()
 
 URL_STATIC_PHOTOS_PRODUCTS = os.environ.get("URL_STATIC_PHOTOS_PRODUCTS")
 

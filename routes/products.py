@@ -1,11 +1,11 @@
-from typing import Dict, Annotated, List, Union
+from typing import Dict, Annotated, List, Union, Optional
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter, Query, Response, status
 from controllers import ProductsController
-from models import Product, ProductUpdate, ProductResponse, Failed, Success
+from models import Product, ProductUpdate, ProductResponse, Failed, Success, ProductQuery
 from serializers import ProductSerializer
 from dependencies import VerifyTokenUser
-
+import numpy as np
 
 router: APIRouter = APIRouter(
     prefix="/products",
@@ -33,12 +33,38 @@ async def get_all_products(verify_token: VerifyTokenUser) -> Union[JSONResponse,
                         media_type="application/json; charset=UTF-8")
 
 
+@router.get("/many")
+async def get_many_products(verify_token: VerifyTokenUser,
+                            name: Optional[str] = None,
+                            description: Optional[str] = None,
+                            brand: Optional[str] = None,
+                            min_price: Annotated[Optional[float], Query(gt=0)] = None,
+                            max_price: Annotated[Optional[float], Query(gt=0)] = None):
+    if 'failed' in verify_token:
+        return JSONResponse(content=verify_token,
+                            status_code=verify_token['status_code'],
+                            media_type="application/json; charset=UTF-8")
+    query: ProductQuery = ProductQuery(**{'name': name,
+                                          'description': description,
+                                          'brand': brand,
+                                          'max_price': max_price,
+                                          'min_price': min_price})
+    result: Dict = controller.get_many(query)
+    if 'failed' in result:
+        return JSONResponse(content=result,
+                            status_code=status.HTTP_404_NOT_FOUND,
+                            media_type="application/json; charset=UTF-8")
+    result: List[Dict] = serializer.serialize_all(result)
+    return JSONResponse(content=result,
+                        media_type="application/json; charset=UTF-8")
+
+
 @router.get("/", response_model=ProductResponse | Failed)
-async def get_one_client_by_id(product_id: Annotated[str | None, Query(regex=r'^[a-f0-9]{24}$',
-                                                                       title='mongodb _id',
-                                                                       description='mongodb _id must be valid'
-                                                                       )],
-                               verify_token: VerifyTokenUser) \
+async def get_one_product_by_id(product_id: Annotated[str | None, Query(regex=r'^[a-f0-9]{24}$',
+                                                                        title='mongodb _id',
+                                                                        description='mongodb _id must be valid'
+                                                                        )],
+                                verify_token: VerifyTokenUser) \
         -> Union[JSONResponse, Dict]:
     if 'failed' in verify_token:
         return JSONResponse(content=verify_token,

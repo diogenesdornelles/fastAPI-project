@@ -4,6 +4,7 @@ from utils import CpfValidator
 from validate_email import validate_email
 from pydantic import BaseModel, Field, validator
 from models import Client, ClientAuth
+from datetime import datetime
 
 PATTERN = r'^[a-f0-9]{24}$'
 
@@ -17,7 +18,7 @@ class User(BaseModel):
     rep_password: str = Field(description="User rep. password")
 
     @validator('cpf')
-    def cpf_must_be_valid(cls, value: str):
+    def cpf_must_be_valid(cls, value: str) -> str:
         cpf = CpfValidator(value)
         result = cpf.is_valid()
         if not result:
@@ -25,20 +26,20 @@ class User(BaseModel):
         return value
 
     @validator('email')
-    def email_must_be_valid(cls, value: str):
+    def email_must_be_valid(cls, value: str) -> str:
         is_valid = validate_email(value)
         if not is_valid:
             raise ValueError('Email must be valid')
         return value
 
     @validator('phone')
-    def phone_must_be_valid(cls, value: str):
+    def phone_must_be_valid(cls, value: str) -> str:
         if len(value) != 11 or not value.isnumeric():
             raise ValueError('Phone must be only numeric and valid')
         return value
 
     @validator('password')
-    def password_must_be_valid(cls, value: str):
+    def password_must_be_valid(cls, value: str) -> str:
         if len(value) < 8:
             raise ValueError('Password minimum length is 8')
         symbol_cont = 0
@@ -57,14 +58,31 @@ class User(BaseModel):
         return value
 
     @validator('rep_password')
-    def passwords_must_match(cls, value: str, values: Dict):
+    def passwords_must_match(cls, value: str, values: Dict) -> str:
         if values['password'] != value:
             raise ValueError('Passwords do not match')
         return value
 
-    def to_dict(self):
-        del self.rep_password
-        return Client.dict(self, exclude_none=True, exclude_unset=True)
+    def to_dict(self) -> Dict:
+        return User.dict(self, exclude_none=True, exclude_unset=True)
+
+
+class FullUser(User):
+    created_at: datetime = Field(default_factory=datetime.now)
+    last_modified: datetime = Field(default_factory=datetime.now)
+    is_user: bool = Field(default=True)
+
+    def to_dict(self) -> Dict:
+        return {
+            'name': self.name,
+            'email': self.email,
+            'cpf': self.cpf,
+            'phone': self.phone,
+            'password': self.password,
+            'created_at': self.created_at,
+            'last_modified': self.last_modified,
+            'is_user': self.is_user
+        }
 
 
 class UserUpdate(BaseModel):
@@ -77,13 +95,13 @@ class UserUpdate(BaseModel):
     password: Optional[str] = Field(description="User new password")
 
     @validator('user_id')
-    def user_id_must_be_valid(cls, value: str):
+    def user_id_must_be_valid(cls, value: str) -> str:
         if not re.match(PATTERN, value):
             raise ValueError('user_id must be only numeric, lowercase and length 24')
         return value
 
     @validator('password')
-    def password_must_be_valid(cls, value: str):
+    def password_must_be_valid(cls, value: str) -> str:
         if len(value) < 8:
             raise ValueError('Password minimum length is 8')
         symbol_cont = 0
@@ -102,7 +120,7 @@ class UserUpdate(BaseModel):
         return value
 
     @validator('cpf')
-    def cpf_must_be_valid(cls, value):
+    def cpf_must_be_valid(cls, value) -> str:
         cpf = CpfValidator(value)
         result = cpf.is_valid()
         if not result:
@@ -110,19 +128,19 @@ class UserUpdate(BaseModel):
         return value
 
     @validator('email')
-    def email_must_be_valid(cls, value):
+    def email_must_be_valid(cls, value) -> str:
         is_valid = validate_email(value)
         if not is_valid:
             raise ValueError('Email must be valid')
         return value
 
     @validator('phone')
-    def phone_must_be_valid(cls, value):
+    def phone_must_be_valid(cls, value) -> str:
         if len(value) != 11 or not value.isnumeric():
             raise ValueError('Phone must be only numeric and valid')
         return value
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         return UserUpdate.dict(self, exclude_none=True, exclude_unset=True)
 
 

@@ -41,3 +41,14 @@ PyJWT~=2.7.0
 Pillow~=10.0.0
 packaging~=23.1
 pyparsing~=3.0.9
+
+requests~=2.31.0
+attrs~=23.1.0
+tornado~=6.3.2
+Jinja2~=3.1.2
+lxml~=4.9.3
+ipython~=8.14.0
+certifi~=2023.7.22
+Cython~=3.0.0
+decorator~=5.1.1
+numpy~=1.24.4

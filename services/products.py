@@ -3,11 +3,12 @@ from typing import Dict, List, Any
 from bson.objectid import ObjectId
 from pymongo import errors
 from database import DB
-from .interface import IServices
-from models import Product, ProductUpdate
+from .interface import IServices, IPhoto
+from models import Product, ProductUpdate, FullProduct, ProductQuery
+import re
 
 
-class ProductsService(IServices):
+class ProductsService(IServices, IPhoto):
     def __init__(self):
         self.database = DB.products
         self.__all_products = []
@@ -20,15 +21,15 @@ class ProductsService(IServices):
         self.__delete_photo_result = {}
 
     @property
-    def all_products(self) -> List[Dict] | Dict:
+    def all(self) -> List[Dict] | Dict:
         return self.__all_products
 
     @property
-    def products(self) -> List[Dict]:
+    def many(self) -> List[Dict]:
         return self.__products
 
     @property
-    def product(self) -> Dict:
+    def one(self) -> Dict:
         return self.__product
 
     @property
@@ -64,6 +65,35 @@ class ProductsService(IServices):
         except Exception:
             self.__all_products: Dict = {'failed': 'An error has occurred'}
 
+    def get_many(self, query: ProductQuery):
+        params: Dict = {}
+        if query.name:
+            pattern = re.compile(f".*{query.name}.*", re.IGNORECASE)
+            params['name'] = {"$regex": pattern}
+        if query.description:
+            pattern = re.compile(f".*{query.description}.*", re.IGNORECASE)
+            params['description'] = {"$regex": pattern}
+        if query.brand:
+            pattern = re.compile(query.brand)
+            params['brand'] = {"$regex": pattern}
+        if query.min_price and query.max_price:
+            params['price'] = {"$lt": query.max_price, "$gt": query.min_price}
+        elif query.max_price:
+            params['price'] = {"$lt": query.max_price}
+        elif query.min_price:
+            params['price'] = {"$gt": query.min_price}
+        try:
+            response: List[Dict] = self.database.find(params)
+            response: List[Dict] = list(response)
+            if len(response) > 0:
+                self.__products: List[Dict] = response
+            else:
+                self.__products: List = []
+        except errors.OperationFailure:
+            self.__products: Dict = {'failed': 'An error has occurred: database operation fails'}
+        except Exception:
+            self.__products: Dict = {'failed': 'An error has occurred'}
+
     def get_one_by_id(self, _id: str, projection: bool = False) -> None:
         _id: ObjectId = ObjectId(_id)
         try:
@@ -85,9 +115,7 @@ class ProductsService(IServices):
             self.__product: Dict = {'failed': 'An error has occurred'}
 
     def create_one(self, product: Product) -> None:
-        product.created_at = datetime.now()
-        product.last_modified = product.created_at
-        product.photos = []
+        product: FullProduct = FullProduct(**product.to_dict())
         product: Dict = product.to_dict()
         try:
             response: Any = self.database.insert_one(product).inserted_id
@@ -109,8 +137,9 @@ class ProductsService(IServices):
 
     def update_one_by_id(self, updates: ProductUpdate) -> None:
         product_id: ObjectId = ObjectId(updates.product_id)
-        updates.last_modified = datetime.now()
         updates: Dict = updates.to_dict()
+        del updates['product_id']
+        updates['last_modified'] = datetime.now()
         all_updates: Dict = {
             "$set": updates
         }
@@ -143,8 +172,8 @@ class ProductsService(IServices):
         except Exception:
             self.__delete_result: Dict = {'failed': 'An error has occurred'}
 
-    def insert_new_photo_on_product(self, photo_url: str) -> None:
-        product_id: ObjectId = ObjectId(self.product['_id'])
+    def insert_photo(self, photo_url: str) -> None:
+        product_id: ObjectId = ObjectId(self.one['_id'])
         query: Dict = {
             "_id": product_id
         }
@@ -162,8 +191,8 @@ class ProductsService(IServices):
         except Exception:
             self.__insert_new_photo_result: Dict = {'failed': 'An error has occurred'}
 
-    def remove_photo_from_product(self, photo_url: str) -> None:
-        product_id: ObjectId = ObjectId(self.product['_id'])
+    def remove_photo(self, photo_url: str) -> None:
+        product_id: ObjectId = ObjectId(self.one['_id'])
         query: Dict = {
             "_id": product_id
         }

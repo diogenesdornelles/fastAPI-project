@@ -5,7 +5,7 @@ from pymongo import errors
 from database import DB
 from utils import hash_value
 from .interface import IServices
-from models import User, UserUpdate
+from models import User, UserUpdate, FullUser
 
 
 class UsersService(IServices):
@@ -19,15 +19,15 @@ class UsersService(IServices):
         self.__delete_result = {}
 
     @property
-    def all_users(self) -> List[Dict]:
+    def all(self) -> List[Dict]:
         return self.__all_users
 
     @property
-    def users(self) -> List[Dict]:
+    def many(self) -> List[Dict]:
         return self.__users
 
     @property
-    def user(self) -> Dict:
+    def one(self) -> Dict:
         return self.__user
 
     @property
@@ -73,10 +73,8 @@ class UsersService(IServices):
         pass
 
     def create_one(self, user: User) -> None:
-        user.created_at = datetime.now()
-        user.last_modified = datetime.now()
+        user: FullUser = FullUser(**user.to_dict())
         user.password = hash_value(user.password)
-        user.is_user = True
         user: Dict = user.to_dict()
         try:
             response: Any = self.database.insert_one(user).inserted_id
@@ -99,10 +97,10 @@ class UsersService(IServices):
     def update_one_by_id(self, updates: UserUpdate) -> None:
         _id: ObjectId = ObjectId(updates.user_id)
         del updates.user_id
-        updates.last_modified = datetime.now()
         if 'password' in updates:
             updates.password = hash_value(updates.password)
         updates: Dict = updates.to_dict()
+        updates['last_modified'] = datetime.now()
         all_updates: Dict = {
             "$set": updates
         }

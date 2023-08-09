@@ -4,11 +4,11 @@ from bson.objectid import ObjectId
 from pymongo import errors
 from database import DB
 from utils import hash_value
-from .interface import IServices
-from models import Client, ClientUpdate
+from .interface import IServices, IPhoto
+from models import Client, ClientUpdate, FullClient
 
 
-class ClientsService(IServices):
+class ClientsService(IServices, IPhoto):
     def __init__(self):
         self.database = DB.clients
         self.__all_clients = []
@@ -22,15 +22,15 @@ class ClientsService(IServices):
         self.__delete_photo_result = {}
 
     @property
-    def all_clients(self) -> List[Dict]:
+    def all(self) -> List[Dict]:
         return self.__all_clients
 
     @property
-    def clients(self) -> List[Dict]:
+    def many(self) -> List[Dict]:
         return self.__clients
 
     @property
-    def client(self) -> Dict:
+    def one(self) -> Dict:
         return self.__client
 
     @property
@@ -79,7 +79,9 @@ class ClientsService(IServices):
                                                         {'password': 0,
                                                          'orders': 0,
                                                          'created_at': 0,
-                                                         'last_modified': 0})
+                                                         'last_modified': 0,
+                                                         'photos': 0,
+                                                         'is_client': 0})
             else:
                 response: Dict = self.database.find_one({"_id": _id},
                                                         {'password': 0})
@@ -97,12 +99,7 @@ class ClientsService(IServices):
         pass
 
     def create_one(self, client: Client) -> None:
-        client.created_at = datetime.now()
-        client.last_modified = datetime.now()
-        client.orders = []
-        client.photos = []
-        client.password = hash_value(client.password)
-        client.is_client = True
+        client: FullClient = FullClient(**client.to_dict())
         client: Dict = client.to_dict()
         try:
             response: Any = self.database.insert_one(client).inserted_id
@@ -115,20 +112,22 @@ class ClientsService(IServices):
             self.__create_result: Dict = {'failed': "duplicate key error",
                                           'message': error.details.get('keyValue')}
         except errors.WriteError as error:
+            print(error)
             self.__create_result: Dict = {'failed': "Validate error",
                                           'message': error.details.get('keyValue')}
         except errors.OperationFailure:
             self.__create_result: Dict = {'failed': 'an error has occurred: database operation fails'}
-        except Exception:
+        except Exception as error:
+            print(error)
             self.__create_result: Dict = {'failed': 'an error has occurred'}
 
     def update_one_by_id(self, updates: ClientUpdate) -> None:
         _id: ObjectId = ObjectId(updates.client_id)
-        del updates.client_id
-        updates.last_modified = datetime.now()
+        updates: Dict = updates.to_dict()
         if 'password' in updates:
             updates.password = hash_value(updates.password)
-        updates: Dict = updates.to_dict()
+        updates['last_modified'] = datetime.now()
+        del updates['client_id']
         all_updates: Dict = {
             "$set": updates
         }
@@ -162,7 +161,7 @@ class ClientsService(IServices):
             self.__delete_result: Dict = {'failed': 'an error has occurred'}
 
     def insert_new_order_on_client(self, order_id: str) -> None:
-        client_id: ObjectId = ObjectId(self.client['_id'])
+        client_id: ObjectId = ObjectId(self.one['_id'])
         order_id: ObjectId = ObjectId(order_id)
         query: Dict = {
             "_id": client_id
@@ -181,8 +180,8 @@ class ClientsService(IServices):
         except Exception:
             self.__insert_new_order_result: Dict = {'failed': 'an error has occurred'}
 
-    def insert_new_photo_on_client(self, photo_url: str) -> None:
-        client_id: ObjectId = ObjectId(self.client['_id'])
+    def insert_photo(self, photo_url: str) -> None:
+        client_id: ObjectId = ObjectId(self.one['_id'])
         query: Dict = {
             "_id": client_id
         }
@@ -200,8 +199,8 @@ class ClientsService(IServices):
         except Exception:
             self.__insert_new_photo_result: Dict = {'failed': 'an error has occurred'}
 
-    def remove_photo_from_client(self, photo_url: str) -> None:
-        client_id: ObjectId = ObjectId(self.client['_id'])
+    def remove_photo(self, photo_url: str) -> None:
+        client_id: ObjectId = ObjectId(self.one['_id'])
         query: Dict = {
             "_id": client_id
         }

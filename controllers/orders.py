@@ -1,7 +1,7 @@
 from typing import List, Dict
 from services import OrdersService
 from .interface import IController
-from models import Item
+from models import AddItem, RemoveItem
 from models import ChangeStatus
 
 
@@ -11,29 +11,29 @@ class OrdersController(IController):
 
     def get_all(self) -> List[Dict]:
         self.service.get_all()
-        response: List[Dict] = self.service.all_orders
+        response: List[Dict] = self.service.all
         return response
 
     def get_one_by_id(self, _id: str) -> Dict:
         self.service.get_one_by_id(_id)
-        response: Dict = self.service.order
+        response: Dict = self.service.one
         return response
 
-    def create_one(self, order: Dict) -> Dict:
-        self.service.create_one(order)
+    def create_one(self, client_id: str) -> Dict:
+        self.service.create_one(client_id)
         response: Dict = self.service.create_result
         return response
 
     def update_one_by_id(self, updates: Dict) -> Dict:
         pass
 
-    def add_item(self, order_id: str, item: Item) -> Dict:
-        self.service.add_product(order_id, item)
+    def add_item(self, item: AddItem) -> Dict:
+        self.service.add_product(item)
         response: Dict = self.service.update_result
         return response
 
-    def remove_item(self, order_id: str, product_id: str) -> Dict:
-        self.service.remove_product(order_id, product_id)
+    def remove_item(self, item: RemoveItem) -> Dict:
+        self.service.remove_product(item)
         response: Dict = self.service.update_result
         return response
 
