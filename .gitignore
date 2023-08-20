@@ -1,6 +1,6 @@
 /venv
 examples.json
 notes
-tests.py
+test.py
 .idea
 .env

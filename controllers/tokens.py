@@ -1,12 +1,13 @@
 from typing import Dict
 from services import TokensService
+from models import ClientAuth
 
 
 class TokensController:
     def __init__(self):
         self.service: TokensService = TokensService()
 
-    def create_token_client(self, client: Dict) -> Dict:
+    def create_token_client(self, client: ClientAuth) -> Dict:
         response: Dict = self.service.create_token_client(client)
         return response
 

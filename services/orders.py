@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import List, Dict, Any
 from bson.objectid import ObjectId
 from pymongo import errors
@@ -6,7 +5,7 @@ from pymongo.cursor import Cursor
 from services import ClientsService, ProductsService
 from database import DB
 from .interface import IServices
-from models import AddItem, RemoveItem, ProductUpdate, ChangeStatus
+from models import AddItem, RemoveItem, ProductUpdate, ChangeStatus, ClientId, OrderId, FullOrder
 
 
 class OrdersService(IServices):
@@ -58,38 +57,32 @@ class OrdersService(IServices):
         except Exception:
             self.__all_orders: Dict = {'failed': 'an error has occurred'}
 
-    def get_one_by_id(self, _id: str) -> None:
-        _id: ObjectId = ObjectId(_id)
+    def get_one_by_id(self, _id: OrderId) -> None:
         try:
-            response: Dict = self.database_orders.find_one({"_id": _id})
+            response: Dict = self.database_orders.find_one({"_id": _id.to_objectid()})
             if response:
                 self.__order: Dict = response
             else:
                 self.__order: Dict = {'failed': 'order not founded',
-                                      '_id': str(_id)}
+                                      '_id': str(_id.order_id)}
         except errors.OperationFailure:
             self.__order: Dict = {'failed': 'an error has occurred: database operation fails'}
         except Exception:
             self.__order: Dict = {'failed': 'an error has occurred'}
 
-    def create_one(self, client_id: str) -> None | Dict:
+    def create_one(self, _id: ClientId) -> None | Dict:
         """
         Create a single order.
         :parameter: client_id: str = client ID.
         :return: Dict
         """
-        self.client_service.get_one_by_id(client_id, True)
+        self.client_service.get_one_by_id(_id, True)
         if 'failed' in self.client_service.one:
             return {'failed': 'client not founded',
-                    '_id': client_id}
+                    '_id': _id.client_id}
         else:
             self.client_service.one['_id']: str = str(self.client_service.one['_id'])
-        order: Dict = {"items": [],
-                       "client": self.client_service.one,
-                       "status": 'in_cart',
-                       "created_at": datetime.now(),
-                       "last_modified": datetime.now(),
-                       }
+        order: Dict = FullOrder(**{"client": self.client_service.one}).to_dict()
         try:
             response: Any = self.database_orders.insert_one(order).inserted_id
             if response:
@@ -106,7 +99,7 @@ class OrdersService(IServices):
     def add_product(self, item: AddItem):
         order_id: str = item.order_id
         product_id: str = item.product_id
-        self.get_one_by_id(order_id)
+        self.get_one_by_id(item.get_orderid())
         if 'failed' in self.one:
             self.__update_result: Dict = {'failed': 'order_id not founded',
                                           '_id': order_id}
@@ -150,7 +143,7 @@ class OrdersService(IServices):
     def remove_product(self, item: RemoveItem):
         order_id: str = item.order_id
         product_id: str = item.product_id
-        self.get_one_by_id(order_id)
+        self.get_one_by_id(item.get_orderid())
         if 'failed' in self.one:
             self.__update_result: Dict = {'failed': 'order_id not founded',
                                           '_id': order_id}
@@ -187,15 +180,15 @@ class OrdersService(IServices):
 
     def change_status(self, status: ChangeStatus):
         order_id: str = status.order_id
-        status: str = status.status
-        self.get_one_by_id(order_id)
+        status_str: str = status.status
+        self.get_one_by_id(status.get_orderid())
         if 'failed' in self.one:
             self.__update_result: Dict = {'failed': 'order_id not founded',
                                           '_id': order_id}
         else:
             update: Dict = {
                 "$set": {
-                    "status": status,
+                    "status": status_str,
                 }
             }
             try:

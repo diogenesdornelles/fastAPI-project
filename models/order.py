@@ -1,5 +1,8 @@
+from datetime import datetime
+
+from bson import ObjectId
 from pydantic import BaseModel, Field, validator
-from typing import Dict
+from typing import Dict, List
 from enum import Enum
 import re
 
@@ -15,8 +18,8 @@ class OrderId(BaseModel):
             raise ValueError('order_id must be only numeric, lowercase and length 24')
         return value
 
-    def to_str(self) -> str:
-        return self.order_id
+    def to_objectid(self) -> ObjectId:
+        return ObjectId(self.order_id)
 
 
 class ClientId(BaseModel):
@@ -28,8 +31,8 @@ class ClientId(BaseModel):
             raise ValueError('client_id must be only numeric, lowercase and length 24')
         return value
 
-    def to_str(self) -> str:
-        return self.client_id
+    def to_objectid(self) -> ObjectId:
+        return ObjectId(self.client_id)
 
 
 class ProductId(BaseModel):
@@ -41,8 +44,8 @@ class ProductId(BaseModel):
             raise ValueError('product_id must be only numeric, lowercase and length 24')
         return value
 
-    def to_str(self) -> str:
-        return self.product_id
+    def to_objectid(self) -> ObjectId:
+        return ObjectId(self.product_id)
 
 
 class AddItem(OrderId, ProductId):
@@ -51,10 +54,30 @@ class AddItem(OrderId, ProductId):
     def to_dict(self) -> Dict:
         return AddItem.dict(self, exclude_none=True, exclude_unset=True)
 
+    def get_orderid(self) -> OrderId:
+        return OrderId(**{
+            'order_id': self.order_id
+        })
+
+    def get_productid(self) -> ProductId:
+        return ProductId(**{
+            'product_id': self.product_id
+        })
+
 
 class RemoveItem(OrderId, ProductId):
     def to_dict(self) -> Dict:
         return RemoveItem.dict(self, exclude_none=True, exclude_unset=True)
+
+    def get_orderid(self) -> OrderId:
+        return OrderId(**{
+            'order_id': self.order_id
+        })
+
+    def get_productid(self) -> ProductId:
+        return ProductId(**{
+            'product_id': self.product_id
+        })
 
 
 class OrderStatus(str, Enum):
@@ -74,3 +97,19 @@ class ChangeStatus(OrderId):
             'order_id': self.order_id,
             'status': self.status.value()
         }
+
+    def get_orderid(self) -> OrderId:
+        return OrderId(**{
+            'order_id': self.order_id
+        })
+
+
+class FullOrder(BaseModel):
+    client: Dict = Field(description="Client")
+    status: str = Field(description="Status", default='in_cart')
+    created_at: datetime = Field(default_factory=datetime.now)
+    last_modified: datetime = Field(default_factory=datetime.now)
+    items: List[None] = Field(default=[])
+
+    def to_dict(self) -> Dict:
+        return RemoveItem.dict(self, exclude_none=True, exclude_unset=True)

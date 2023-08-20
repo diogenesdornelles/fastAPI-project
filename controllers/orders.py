@@ -1,8 +1,7 @@
 from typing import List, Dict
 from services import OrdersService
 from .interface import IController
-from models import AddItem, RemoveItem
-from models import ChangeStatus
+from models import AddItem, RemoveItem, ClientId, OrderId, ChangeStatus
 
 
 class OrdersController(IController):
@@ -14,13 +13,13 @@ class OrdersController(IController):
         response: List[Dict] = self.service.all
         return response
 
-    def get_one_by_id(self, _id: str) -> Dict:
+    def get_one_by_id(self, _id: OrderId) -> Dict:
         self.service.get_one_by_id(_id)
         response: Dict = self.service.one
         return response
 
-    def create_one(self, client_id: str) -> Dict:
-        self.service.create_one(client_id)
+    def create_one(self, _id: ClientId) -> Dict:
+        self.service.create_one(_id)
         response: Dict = self.service.create_result
         return response
 

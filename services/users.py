@@ -1,11 +1,9 @@
-from datetime import datetime
 from typing import List, Dict, Any
 from bson.objectid import ObjectId
 from pymongo import errors
 from database import DB
-from utils import hash_value
 from .interface import IServices
-from models import User, UserUpdate, FullUser
+from models import User, UserUpdate, FullUser, UserQuery
 
 
 class UsersService(IServices):
@@ -69,12 +67,22 @@ class UsersService(IServices):
         except Exception:
             self.__user = {'failed': 'an error has occurred'}
 
-    def get_users_by_properties(self, properties: Dict, projection: bool = False):
-        pass
+    def get_many(self, query: UserQuery):
+        params: Dict = query.params()
+        try:
+            response: List[Dict] = self.database.find(params)
+            response: List[Dict] = list(response)
+            if len(response) > 0:
+                self.__users: List[Dict] = response
+            else:
+                self.__users: List = []
+        except errors.OperationFailure:
+            self.__users: Dict = {'failed': 'An error has occurred: database operation fails'}
+        except Exception:
+            self.__users: Dict = {'failed': 'An error has occurred'}
 
     def create_one(self, user: User) -> None:
         user: FullUser = FullUser(**user.to_dict())
-        user.password = hash_value(user.password)
         user: Dict = user.to_dict()
         try:
             response: Any = self.database.insert_one(user).inserted_id
@@ -95,20 +103,15 @@ class UsersService(IServices):
             self.__create_result: Dict = {'failed': 'an error has occurred'}
 
     def update_one_by_id(self, updates: UserUpdate) -> None:
-        _id: ObjectId = ObjectId(updates.user_id)
-        del updates.user_id
-        if 'password' in updates:
-            updates.password = hash_value(updates.password)
-        updates: Dict = updates.to_dict()
-        updates['last_modified'] = datetime.now()
+        updates = updates.params()
         all_updates: Dict = {
             "$set": updates
         }
         try:
-            result: int = self.database.update_one({"_id": _id}, all_updates).modified_count
+            result: int = self.database.update_one({"_id": updates['_id']}, all_updates).modified_count
             self.__update_result: Dict = {'success': f'{result} user(s) modified'} if result > 0 \
                 else {'failed': 'User not updated',
-                      '_id': str(_id)}
+                      '_id': str(updates['_id'])}
         except errors.DuplicateKeyError as error:
             self.__update_result: Dict = {'failed': "duplicate key error",
                                           'message': error.details.get('keyValue')}

@@ -1,7 +1,7 @@
 from typing import Dict, List
 from services import UsersService
 from .interface import IController
-from models import User, UserUpdate
+from models import User, UserUpdate, UserQuery
 
 
 class UsersController(IController):
@@ -16,6 +16,11 @@ class UsersController(IController):
     def get_one_by_id(self, _id: str) -> Dict:
         self.service.get_one_by_id(_id)
         response: Dict = self.service.one
+        return response
+
+    def get_many(self, query: UserQuery) -> List[Dict] | Dict:
+        self.service.get_many(query)
+        response: List[Dict] = self.service.many
         return response
 
     def create_one(self, user: User) -> Dict:

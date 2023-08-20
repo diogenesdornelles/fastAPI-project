@@ -5,6 +5,7 @@ from utils import verify_hashed_value
 from dotenv import load_dotenv, find_dotenv
 import jwt
 from datetime import datetime, timedelta
+from models import ClientAuth
 
 load_dotenv(find_dotenv())
 
@@ -20,20 +21,20 @@ class TokensService:
         self.database_clients = DB.clients
         self.database_users = DB.users
 
-    def create_token_client(self, client: Dict) -> Dict | bool:
-        client_saved = self.database_clients.find_one({'email': client['email']},
-                                                      {'_id': 0,
-                                                       'created_at': 0,
-                                                       'last_modified': 0,
-                                                       'orders': 0,
-                                                       'name': 0,
-                                                       'phone': 0,
-                                                       'cpf': 0
-                                                       })
+    def create_token_client(self, client: ClientAuth) -> Dict:
+        client_saved: Dict | None = self.database_clients.find_one({'email': client.email},
+                                                                   {'created_at': 0,
+                                                                    'last_modified': 0,
+                                                                    'orders': 0,
+                                                                    'name': 0,
+                                                                    'phone': 0,
+                                                                    'cpf': 0
+                                                                    })
         if not client_saved:
             return {'failed': 'Client not founded'}
-        is_valid = verify_hashed_value(client['password'],
-                                       client_saved['password'])
+        is_valid: bool = verify_hashed_value(client.password,
+                                             client_saved['password'])
+        client_saved['_id']: str = str(client_saved['_id'])
         if is_valid:
             expiration = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
             data = {
@@ -51,19 +52,19 @@ class TokensService:
                     "expiration": f"{expiration}"}
         return {'failed': 'Passwords not match'}
 
-    def create_token_user(self, user: Dict) -> Dict | bool:
-        user_saved = self.database_users.find_one({'email': user['email']},
-                                                  {'_id': 0,
-                                                   'name': 0,
-                                                   'cpf': 0,
-                                                   'phone': 0,
-                                                   'created_at': 0,
-                                                   'last_modified': 0
-                                                   })
+    def create_token_user(self, user: Dict) -> Dict:
+        user_saved: Dict | None = self.database_users.find_one({'email': user['email']},
+                                                               {'name': 0,
+                                                                'cpf': 0,
+                                                                'phone': 0,
+                                                                'created_at': 0,
+                                                                'last_modified': 0
+                                                                })
         if not user_saved:
             return {'failed': 'User not founded'}
-        is_valid = verify_hashed_value(user['password'],
-                                       user_saved['password'])
+        is_valid: bool = verify_hashed_value(user['password'],
+                                             user_saved['password'])
+        user_saved['_id']: str = str(user_saved['_id'])
         if is_valid:
             expiration = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
             data = {

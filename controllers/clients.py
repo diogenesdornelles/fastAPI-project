@@ -1,7 +1,7 @@
 from typing import Dict, List
 from services import ClientsService
 from .interface import IController
-from models import Client, ClientUpdate
+from models import Client, ClientUpdate, ClientQuery, ClientId
 
 
 class ClientsController(IController):
@@ -13,7 +13,12 @@ class ClientsController(IController):
         response: List[Dict] = self.service.all
         return response
 
-    def get_one_by_id(self, _id: str) -> Dict:
+    def get_many(self, query: ClientQuery) -> List[Dict] | Dict:
+        self.service.get_many(query)
+        response: List[Dict] = self.service.many
+        return response
+
+    def get_one_by_id(self, _id: ClientId) -> Dict:
         self.service.get_one_by_id(_id)
         response: Dict = self.service.one
         return response

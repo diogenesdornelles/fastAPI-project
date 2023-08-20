@@ -2,7 +2,7 @@ from typing import List, Dict, Annotated, Union
 from fastapi.responses import JSONResponse
 from controllers import OrdersController
 from fastapi import APIRouter, Query, status
-from models import ClientId, Failed, Success, ChangeStatus, AddItem, ProductId, RemoveItem
+from models import ClientId, Failed, Success, ChangeStatus, AddItem, RemoveItem, OrderId
 from serializers import OrderSerializer
 from dependencies import VerifyTokenUser
 
@@ -33,10 +33,7 @@ async def get_all_orders(verify_token: VerifyTokenUser) -> JSONResponse:
 
 
 @router.get("/", response_model=None)
-async def get_one_order_by_id(order_id: Annotated[str | None, Query(regex=r'^[a-f0-9]{24}$',
-                                                                    title='mongodb _id',
-                                                                    description='mongodb _id must be valid'
-                                                                    )],
+async def get_one_order_by_id(order_id: OrderId,
                               verify_token: VerifyTokenUser) \
         -> Union[JSONResponse, Dict]:
     if 'failed' in verify_token:
@@ -69,7 +66,6 @@ async def create_one_order(client_id: ClientId,
         return JSONResponse(content=verify_token,
                             status_code=verify_token['status_code'],
                             media_type="application/json; charset=UTF-8")
-    client_id: str = client_id.to_str()
     result: Dict = controller.create_one(client_id)
     if 'failed' in result:
         if 'message' in result:

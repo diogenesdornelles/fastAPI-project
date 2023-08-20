@@ -27,7 +27,7 @@ async def token_client_verify(request: Request) -> Dict:
             if not controller.verify_user_token(token['email'], token['password']):
                 return {'failed': 'User email not founded or password is wrong',
                         'status_code': status.HTTP_401_UNAUTHORIZED}
-            return {'success': 'authentication is ok'}
+            return {'success': 'authentication is ok', 'client_id': token['_id']}
         except jwt.ExpiredSignatureError:
             return {'failed': 'signature has expired',
                     'status_code': status.HTTP_401_UNAUTHORIZED}

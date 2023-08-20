@@ -10,7 +10,6 @@ from dependencies import VerifyTokenUser
 
 load_dotenv(find_dotenv())
 
-
 router: APIRouter = APIRouter(
     prefix="/uploadfiles",
     tags=["uploadfiles"],
@@ -24,6 +23,7 @@ URL_STATIC_PHOTOS_CLIENTS = os.environ.get("URL_STATIC_PHOTOS_CLIENTS")
 FILENAME_LENGTH = os.environ.get("FILENAME_LENGTH")
 
 controller: UploadsController = UploadsController()
+
 
 @router.post("/clients")
 async def upload_photo_client(file: UploadFile,

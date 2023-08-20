@@ -23,7 +23,6 @@ controller: TokensController = TokensController()
 
 @router.post("/clients", response_model=None)
 async def create_token_client(client: ClientAuth) -> JSONResponse:
-    client: Dict = client.to_dict()
     result: Dict = controller.create_token_client(client)
     if 'failed' in result:
         return JSONResponse(content=result,

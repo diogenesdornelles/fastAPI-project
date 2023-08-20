@@ -1,4 +1,5 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Union
+from bson import ObjectId
 from pydantic import BaseModel, Field, validator
 from decimal import Decimal, ROUND_DOWN
 import re
@@ -30,7 +31,7 @@ class FullProduct(Product):
     last_modified: datetime = Field(default_factory=datetime.now)
     photos: List = Field(default=[])
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Union[str, list, datetime, float, int]]:
         return {
             'name': self.name,
             'brand': self.brand,
@@ -49,6 +50,25 @@ class ProductQuery(BaseModel):
     min_price: Optional[float] = Field(gt=0, description="Product price", default=None)
     max_price: Optional[float] = Field(gt=0, description="Product price", default=None)
     description: Optional[str] = Field(min_length=3, description="Product description", default=None)
+
+    def params(self) -> Dict[str, Union[str, float]]:
+        params: Dict = {}
+        if self.name:
+            pattern = re.compile(f".*{self.name}.*", re.IGNORECASE)
+            params['name'] = {"$regex": pattern}
+        if self.description:
+            pattern = re.compile(f".*{self.description}.*", re.IGNORECASE)
+            params['description'] = {"$regex": pattern}
+        if self.brand:
+            pattern = re.compile(self.brand)
+            params['brand'] = {"$regex": pattern}
+        if self.min_price and self.max_price:
+            params['price'] = {"$lt": self.max_price, "$gt": self.min_price}
+        elif self.max_price:
+            params['price'] = {"$lt": self.max_price}
+        elif self.min_price:
+            params['price'] = {"$gt": self.min_price}
+        return params
 
     def to_dict(self):
         return ProductQuery.dict(self, exclude_none=True, exclude_unset=True)
@@ -75,8 +95,20 @@ class ProductUpdate(BaseModel):
             raise ValueError('product_id must be only numeric, lowercase and length 24')
         return value
 
-    def to_dict(self):
-        return ProductUpdate.dict(self, exclude_none=True, exclude_unset=True)
+    def params(self) -> Dict[str, Union[str, Decimal, ObjectId, int, datetime]]:
+        params: Dict[str, Union[str, Decimal, ObjectId, int, datetime]] = {'_id': ObjectId(self.product_id)}
+        if self.name:
+            params['name'] = self.name
+        if self.brand:
+            params['brand'] = self.brand
+        if self.description:
+            params['description'] = self.description
+        if self.quantity:
+            params['quantity'] = self.quantity
+        if self.price:
+            params['price'] = self.price
+        params['last_modified'] = datetime.now()
+        return params
 
 
 class ProductResponse(BaseModel):

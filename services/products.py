@@ -1,11 +1,9 @@
-from datetime import datetime
 from typing import Dict, List, Any
 from bson.objectid import ObjectId
 from pymongo import errors
 from database import DB
 from .interface import IServices, IPhoto
 from models import Product, ProductUpdate, FullProduct, ProductQuery
-import re
 
 
 class ProductsService(IServices, IPhoto):
@@ -66,22 +64,7 @@ class ProductsService(IServices, IPhoto):
             self.__all_products: Dict = {'failed': 'An error has occurred'}
 
     def get_many(self, query: ProductQuery):
-        params: Dict = {}
-        if query.name:
-            pattern = re.compile(f".*{query.name}.*", re.IGNORECASE)
-            params['name'] = {"$regex": pattern}
-        if query.description:
-            pattern = re.compile(f".*{query.description}.*", re.IGNORECASE)
-            params['description'] = {"$regex": pattern}
-        if query.brand:
-            pattern = re.compile(query.brand)
-            params['brand'] = {"$regex": pattern}
-        if query.min_price and query.max_price:
-            params['price'] = {"$lt": query.max_price, "$gt": query.min_price}
-        elif query.max_price:
-            params['price'] = {"$lt": query.max_price}
-        elif query.min_price:
-            params['price'] = {"$gt": query.min_price}
+        params: Dict = query.params()
         try:
             response: List[Dict] = self.database.find(params)
             response: List[Dict] = list(response)
@@ -136,19 +119,16 @@ class ProductsService(IServices, IPhoto):
             self.__create_result: Dict = {'failed': 'An error has occurred'}
 
     def update_one_by_id(self, updates: ProductUpdate) -> None:
-        product_id: ObjectId = ObjectId(updates.product_id)
-        updates: Dict = updates.to_dict()
-        del updates['product_id']
-        updates['last_modified'] = datetime.now()
+        updates: Dict = updates.params()
         all_updates: Dict = {
             "$set": updates
         }
         try:
-            result: int = self.database.update_one({"_id": product_id},
+            result: int = self.database.update_one({"_id": updates['_id']},
                                                    all_updates).modified_count
             self.__update_result: Dict = {'success': f'{result} product(s) updated'} if result > 0 \
                 else {'failed': 'Product not updated',
-                      '_id': str(product_id)}
+                      '_id': str(updates['_id'])}
         except errors.DuplicateKeyError as error:
             self.__update_result: Dict = {'failed': "Duplicate key error",
                                           'message': error.details.get('keyValue')}
